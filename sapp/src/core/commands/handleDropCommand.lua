@@ -4,7 +4,7 @@
 
 function handleDropCommand(playerIndex, commandName, commandArgs)
 
-    if validateCommand(commandName) then return false end
+    if not validateCommand(commandName, "drop") then return false end
 
     drop_weapon(playerIndex)
 
