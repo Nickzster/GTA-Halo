@@ -1,6 +1,6 @@
 --BEGIN_IMPORT
 -- import helpers.new end
--- import core.GameEvent end
+-- import core.objects.GameEvent end
 -- import shared.config end
 -- END_IMPORT
 

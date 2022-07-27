@@ -1,16 +1,16 @@
 --BEGIN_IMPORT
 -- import shared.globals end
--- import core.Inventory end
+-- import core.objects.Inventory end
 -- import helpers.moneyDisplay end
--- import core.LocalDB end
+-- import core.objects.LocalDB end
 -- import helpers.serverUtils end
 -- import helpers.gameUtils end
 -- import core.commands.CommandHandler end
 -- import helpers.new end
--- import core.GameEvent end
+-- import core.objects.GameEvent end
 -- import shared.config end
 -- import core.handlers.handleObjectSpawn end
--- import core.Location end
+-- import core.objects.Location end
 --END_IMPORT
 
 

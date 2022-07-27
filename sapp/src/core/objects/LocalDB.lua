@@ -1,5 +1,5 @@
 -- BEGIN_IMPORT
--- import core.Inventory end
+-- import core.objects.Inventory end
 -- END_IMPORT
 
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash

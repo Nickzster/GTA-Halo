@@ -1,5 +1,5 @@
 -- BEGIN_IMPORT
--- import core.Location end
+-- import core.objects.Location end
 -- END_IMPORT
 
 FREE_GUN_TO_DISTRIBUTE = "remington"
