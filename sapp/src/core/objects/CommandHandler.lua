@@ -9,6 +9,8 @@
 -- import core.commands.handleBuyCommand end
 -- import core.commands.handleCopCommand end
 -- import core.commands.handleHireCopCommand end
+-- import core.commands.handleShowIDCommand end
+-- import core.commands.handleDropCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -33,21 +35,10 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleCopCommand(playerIndex, commandName, commandArgs) then return false end 
 			if handleHireCopCommand(playerIndex, commandName, commandArgs) then return false end
-
-			if commandargs[1] == "testauthority" then
-					if localPlayer:getCopAuthority() == 1 then
-						rprint(playerIndex, "You have authority.")
-					else
-						rprint(playerIndex, "You do not have authority")
-					end
-					return false
-			elseif commandargs[1] == "showid" then
-					ShowIDFunction(playerIndex)
-					return false
-			elseif commandargs[1] == "drop" then
-					drop_weapon(playerIndex)
-					return false
-			elseif commandargs[1] == "redeem" then
+			if handleShowIDCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleDropCommand(playerIndex, commandName, commandArgs) then return false end
+			
+			if commandargs[1] == "redeem" then
 				if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
 					table.remove(commandargs,1)
 					local typeOfEvent = commandargs[1]
