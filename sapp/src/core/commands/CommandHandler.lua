@@ -6,6 +6,7 @@
 -- import core.commands.parkCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
+-- import helpers.String end
 -- END_IMPORT
 
 function CommandHandler (PlayerIndex,Command,Environment,Password)
@@ -15,8 +16,9 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 			local adminLevel = tonumber(get_var(PlayerIndex, "$lvl")) -- Gets player admin level
 			local localPlayer = ActivePlayers[PlayerIndex]
 			--rprint(PlayerIndex, "You are admin level "..adminLevel)
-			commandargs = {}
-			for w in Command:gmatch("%w+") do commandargs[#commandargs+1] = w end -- parses the string for spaces, and separates each word of the command into their own elements in the queue.  
+			-- commandargs = {}
+			-- for w in Command:gmatch("%w+") do commandargs[#commandargs+1] = w end
+			commandargs = splitString(Command)
 			if commandargs[1] == "drive" then --/drive <car> -> summons the specified car if the player owns it.
 					table.remove(commandargs, 1) --pop the first element off the command queue.
 					DriveCommand(PlayerIndex, commandargs[1])
