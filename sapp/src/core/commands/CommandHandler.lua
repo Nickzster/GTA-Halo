@@ -4,6 +4,8 @@
 -- import core.commands.copCommands end
 -- import core.commands.handleDriveCommand end
 -- import core.commands.handleParkCommand end
+-- import core.commands.handlePayCommand end
+-- import core.commands.handleSaveCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -23,28 +25,10 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 
 			if handleDriveCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
+			if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
 
-			-- if commandargs[1] == "drive" then --/drive <car> -> summons the specified car if the player owns it.
-			-- 		table.remove(commandargs, 1) --pop the first element off the command queue.
-			-- 		DriveCommand(playerIndex, commandargs[1])
-			-- 		return false
-			-- if commandargs[1] == "park" then --/park -> despawns the specified car if the player owns it
-			-- 		ParkCommand(playerIndex)
-			-- 		return false
-			if commandargs[1] == "pay" then --/pay <playerIndex> <amount> -> pays player a certain amount of money
-					if adminLevel > 0  then
-						table.remove(commandargs,1)
-						local playerToPay = tonumber(commandargs[1])
-						local amountToPay = tonumber(commandargs[2])
-						payAPlayer(playerToPay, amountToPay)
-					else
-						rprint(playerIndex, "You do not have sufficent admin privileges to execute this command.")
-					end
-					return false
-			elseif commandargs[1] == "save" then --/save -> writes ActivePlayers -> $hash
-					writePlayerData(playerIndex)
-					return false
-			elseif commandargs[1] == "buy" then --/buy <objectToBuy> <objectName> -> allows a player to buy something.
+			if commandargs[1] == "buy" then --/buy <objectToBuy> <objectName> -> allows a player to buy something.
 					table.remove(commandargs, 1)
 					if VEHICLEPRICES[commandargs[1]] ~= nil then
 						buyVehicle(playerIndex, commandargs[1])

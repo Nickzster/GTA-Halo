@@ -1,5 +1,11 @@
 -- NO_IMPORTS
 
+function playerIsAdmin(playerIndex)
+    local adminLevel = tonumber(get_var(playerIndex, "$lvl"))
+
+    return adminLevel > 0
+end
+
 function AlertServer(PlayerIndex, message)
 	if PlayerIndex ~= nil then
 		say(PlayerIndex, message)
