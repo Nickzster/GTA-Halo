@@ -37,3 +37,7 @@ PROFESSIONS = {
     ["criminal"] = Profession:new():setKey("criminal"):setTitle("Criminal"):setSalary(0)
 }
 
+COMMAND_NAMES = {
+    ["drive"] = "drive",
+}
+

@@ -70,7 +70,6 @@ function ownsThisCar(PlayerIndex, vehicleName) --utility function that checks if
 end
 
 function vehicleSpawn(PlayerIndex, name, vehicleClass) --utility function for Spawn, particularly for vehicles.
-	--say(PlayerIndex, "Getcha ass together boy!")
 	PlayerIndex = tonumber(PlayerIndex)
 	if player_present(PlayerIndex) then
 			execute_command("m "..PlayerIndex.." 0 0 0.4")
@@ -78,11 +77,13 @@ function vehicleSpawn(PlayerIndex, name, vehicleClass) --utility function for Sp
 			execute_command("venter "..PlayerIndex)
 	end
 end
-function Spawn(PlayerIndex, commandargs) --utility function for DriveCommand
+
+
+function Spawn(PlayerIndex, objectToSpawnKey) --utility function for DriveCommand
 	for name, tag in pairs(VEHICLES) do
-		if commandargs[1] == name then
+		if objectToSpawnKey == name then
 			say(PlayerIndex, "Summoning " .. name )
-			vehicleSpawn(PlayerIndex, name, commandParameter)
+			vehicleSpawn(PlayerIndex, name)
 			PlayerSpawnedVehicles[PlayerIndex] = 1
 		end
 	end
