@@ -72,7 +72,7 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					rprint(PlayerIndex, "This command is WIP (You entered "..commandargs[1]..")")
 				return false
 			elseif commandargs[1] == "hirecop" then
-					if adminLevel >= 4 or localPlayer:getProfession() == "sheriff" then
+					if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
 						table.remove(commandargs,1)
 						local hiredCop = tonumber(commandargs[1])
 						if player_present(hiredCop) then
@@ -193,7 +193,7 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					rprint(PlayerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
 				elseif commandargs[1] == "job" then
 					if localPlayer.professionLimit ~= 0 then
-						rprint(PlayerIndex, "You are a"..localPlayer:getProfession())
+						rprint(PlayerIndex, "You are a"..localPlayer:getProfession():getTitle())
 					end
 				elseif commandargs[1] == "rank" then
 					local rankNumber = localPlayer:getCopRank()
@@ -206,13 +206,13 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					end
 				elseif commandargs[1] == "stats" then
 					rprint(PlayerIndex, "Player Statistics for: "..ActivePlayers[PlayerIndex]:getName())
-					rprint(PlayerIndex, "You are a "..ActivePlayers[PlayerIndex]:getProfession())
+					rprint(PlayerIndex, "You are a "..ActivePlayers[PlayerIndex]:getProfession():getTitle())
 					rprint(PlayerIndex, "You have "..ActivePlayers[PlayerIndex]:getKarma().." karma points.")
 				elseif commandargs[1] == "all" then
 					rprint(PlayerIndex, "name: "..ActivePlayers[PlayerIndex]:getName())
 					rprint(PlayerIndex, "hash: "..ActivePlayers[PlayerIndex]:getHash())
 					rprint(PlayerIndex, "bucks: "..ActivePlayers[PlayerIndex]:getBucks())
-					rprint(PlayerIndex, "profession: "..ActivePlayers[PlayerIndex]:getProfession())
+					rprint(PlayerIndex, "profession: "..ActivePlayers[PlayerIndex]:getProfession():getTitle())
 					rprint(PlayerIndex, "apartment: "..ActivePlayers[PlayerIndex]:getApartment())
 					rprint(PlayerIndex, "cop position: "..ActivePlayers[PlayerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[PlayerIndex]:getCopPosition()]..")")
 					rprint(PlayerIndex, "authority: "..ActivePlayers[PlayerIndex]:getCopAuthority())

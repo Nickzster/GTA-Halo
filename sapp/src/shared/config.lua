@@ -1,5 +1,6 @@
 -- BEGIN_IMPORT
 -- import core.objects.Location end
+-- import core.objects.Profession end
 -- END_IMPORT
 
 FREE_GUN_TO_DISTRIBUTE = "remington"
@@ -26,5 +27,13 @@ LOCATIONS = {
     ["gunstore_1"] = Location:new():setName("Foxtown"):setType("ammunation"),
     ["gunstore_2"] = Location:new():setName("Scropion"):setType("ammunation"),
     ["recruiter"] = Location:new():setName("Camel"):setType("recruiter")
+}
+
+PROFESSIONS = {
+    ["sheriff"] = Profession:new():setKey("sheriff"):setTitle("Sheriff"):setSalary(10000),
+    ["deputy"] = Profession:new():setKey("deputy"):setTitle("Deputy"):setSalary(7500),
+    ["officer"] = Profession:new():setKey("officer"):setTitle("Officer"):setSalary(5000),
+    ["civilian"] = Profession:new():setKey("civilian"):setTitle("Civilian"):setSalary(1500),
+    ["criminal"] = Profession:new():setKey("criminal"):setTitle("Criminal"):setSalary(0)
 }
 

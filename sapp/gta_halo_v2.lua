@@ -8,6 +8,41 @@ new = function(self, o)
     return newClassInstance
 end
 
+Profession = {
+    title="",
+    salary=0,
+    key=""
+}
+
+function Profession:setTitle(newTitle)
+    self.title = newTitle
+    return self
+end
+
+function Profession:getTitle()
+    return self.title
+end
+
+function Profession:setKey(newKey)
+    self.key = newKey
+    return self
+end
+
+function Profession:getKey()
+    return self.key
+end
+
+function Profession:setSalary(newSalary)
+    self.salary = newSalary
+    return self
+end
+
+function Profession:getSalary()
+    return self.salary
+end
+
+Profession['new'] = new
+
 Location = {
     locationName="",
     locationType=""
@@ -57,6 +92,14 @@ LOCATIONS = {
     ["gunstore_1"] = Location:new():setName("Foxtown"):setType("ammunation"),
     ["gunstore_2"] = Location:new():setName("Scropion"):setType("ammunation"),
     ["recruiter"] = Location:new():setName("Camel"):setType("recruiter")
+}
+
+PROFESSIONS = {
+    ["sheriff"] = Profession:new():setKey("sheriff"):setTitle("Sheriff"):setSalary(10000),
+    ["deputy"] = Profession:new():setKey("deputy"):setTitle("Deputy"):setSalary(7500),
+    ["officer"] = Profession:new():setKey("officer"):setTitle("Officer"):setSalary(5000),
+    ["civilian"] = Profession:new():setKey("civilian"):setTitle("Civilian"):setSalary(1500),
+    ["criminal"] = Profession:new():setKey("criminal"):setTitle("Criminal"):setSalary(0)
 }
 
 
@@ -192,14 +235,7 @@ end
 
 ClaimedRewards = {}
 
-PROFESSIONS = {
-    ["sheriff"] = 10000,
-    ["deputy"] = 7500,
-    ["officer"] = 5000,
-    ["civilian"] = 1500,
-    ["robber"] = 0,
-    ["delinquent"] = 0
-}
+
 COPPOSITIONS = {
     [0] = "civilian",
     [1] = "officer",
@@ -432,14 +468,12 @@ function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. 
 	end
 end
 --profession setters and getters
-function Inventory:setProfession(professionToBe) 
-    if PROFESSIONS[professionToBe] ~= nil then --if this profession is in the list of professions
-		self.profession = professionToBe  --then set it to the player's profession value
-		return true
-    else
-        return false --otherwise return false, and deny the addition of the profession to the player.
-    end
+
+function Inventory:setProfession(professionToBe)
+	self.profession = professionToBe 
 end
+
+
 function Inventory:getProfession()
     return self.profession
 end
@@ -600,23 +634,6 @@ function niceMoneyDisplay(bucksToDisplay)
 	return format_num(bucksToDisplay, 2, "$")
 end
 
-
-function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
-	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
-			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
-				Spawn(PlayerIndex, commandargs) --spawn it
-			else --otherwise, let them know that they don't own it.
-				rprint(PlayerIndex, "You do not own this vehicle.")
-			end
-		else --otherwise, let them know that they are not at a valid garage
-			rprint(PlayerIndex, "You need to be at a valid garage location!")
-		end
-	else
-		rprint(PlayerIndex, "You already have a summoned vehicle!")
-	end
-end
-
 function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
 	if PlayerIsInAVehicle[PlayerIndex] == 0 then --if the player not in a vehicle
 		if playerIsInArea(PlayerIndex, "garage") then --and the player is at a garage
@@ -653,7 +670,7 @@ function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
 	outputFile:write("\n")
 	outputFile:write("$PLAYER_PROFESSION")
 	outputFile:write("\n")
-	outputFile:write(ActivePlayers[PlayerIndex]:getProfession())
+	outputFile:write(ActivePlayers[PlayerIndex]:getProfession():getKey())
 	outputFile:write("\n")
 	outputFile:write("$PLAYER_KARMA")
 	outputFile:write("\n")
@@ -718,6 +735,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	local tempVehicleTable = {}
 	local tempWeaponTable = {}
 	local playerName = get_var(PlayerIndex, "$name")
+	local defaultProfession = PROFESSIONS["civilian"]
 	if inputFile ~= nil then --if the file exists, then read the data in that way
 		say(PlayerIndex, "Welcome BACK, "..playerName.."!")
 		local endOfFile = false
@@ -731,7 +749,8 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 			elseif valueToCompare == "$PLAYER_BUCKS" then
 				tempInventory:setBucks(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_PROFESSION" then
-				tempInventory:setProfession(inputFile:read("*l"))
+				local professionKey = inputFile:read("*l") or "civilian"
+				tempInventory:setProfession(PROFESSIONS[professionKey])
 			elseif valueToCompare == "$PLAYER_KARMA" then
 				tempInventory:setKarma(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_APARTMENTSTATUS" then
@@ -787,7 +806,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 		tempInventory:setKarma(1)
 		tempInventory:setCopPosition("")
 		tempInventory:setCopAuthority(0)
-		tempInventory:setProfession("civilian")
+		tempInventory:setProfession(defaultProfession)
 		tempInventory:setFugitiveStatus(0)
 		tempInventory:setLoadout("empty","empty")
 		tempInventory:setJailStatus(0)
@@ -797,74 +816,29 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	ActivePlayers[PlayerIndex] = tempInventory
 	ActivePlayersOwnedCars[PlayerIndex] = tempVehicleTable
 	ActivePlayersOwnedWeapons[PlayerIndex] = tempWeaponTable
-	if ActivePlayers[PlayerIndex]:getProfession() == "officer" then
+	if ActivePlayers[PlayerIndex]:getProfession():getTitle() == "Officer" then
 		AlertServer(nil, "An officer has just signed in.")
-	elseif ActivePlayers[PlayerIndex]:getProfession() == "deputy" then
+	elseif ActivePlayers[PlayerIndex]:getProfession():getTitle()  == "Deputy" then
 		AlertServer(nil, "The deputy is in town!")
-	elseif ActivePlayers[PlayerIndex]:getProfession() == "sheriff" then
+	elseif ActivePlayers[PlayerIndex]:getProfession():getTitle()  == "Sheriff" then
 		AlertServer(nil, "Look out boys! The Sheriff's in town.")
 	end
 end
 
-function buyGun(PlayerIndex, gunToBuy)
-	if playerIsInArea(PlayerIndex, "gunstore") then
-		if gunToBuy ~= nil then
-			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
-					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
-					if updatedWeapons[gunToBuy] == nil then
-						updatedWeapons[gunToBuy] = gunToBuy
-						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
-						rprint(PlayerIndex, "You now own this weapon for loadouts.")
-					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
-					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
-				else
-					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
-				end
-			else
-				rprint(PlayerIndex, "An invalid gun was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
-	end
-end
 
-function buyVehicle(PlayerIndex, vehicleToBuy)
-	if playerIsInArea(PlayerIndex, "dealership") then
-		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
-			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
-				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
-					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
-						--then they can buy it
-							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-							if updatedVehicles[vehicleToBuy] == nil then
-								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								updatedVehicles[vehicleToBuy] = vehicleToBuy
-								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
-								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
-								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
-							else
-								rprint(PlayerIndex, "You already own this vehicle!")
-							end
-					else
-						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
-					end
-				else
-					rprint(PlayerIndex, "This vehicle is not for sale.")
-				end
-			else
-				rprint(PlayerIndex, "An invalid vehicle name was specified!")
+function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
+	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
+			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
+				Spawn(PlayerIndex, commandargs) --spawn it
+			else --otherwise, let them know that they don't own it.
+				rprint(PlayerIndex, "You do not own this vehicle.")
 			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		else --otherwise, let them know that they are not at a valid garage
+			rprint(PlayerIndex, "You need to be at a valid garage location!")
 		end
 	else
-		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
+		rprint(PlayerIndex, "You already have a summoned vehicle!")
 	end
 end
 
@@ -957,6 +931,68 @@ function copCommands(PlayerIndex, commandargs)
 		execute_command("t "..PlayerIndex.." hqexit")
 	else
 		rprint(PlayerIndex, "Invalid cop command was issued!")
+	end
+end
+
+function buyGun(PlayerIndex, gunToBuy)
+	if playerIsInArea(PlayerIndex, "gunstore") then
+		if gunToBuy ~= nil then
+			if WEAPONS[gunToBuy] ~= nil then
+				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
+					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
+					if updatedWeapons[gunToBuy] == nil then
+						updatedWeapons[gunToBuy] = gunToBuy
+						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
+						rprint(PlayerIndex, "You now own this weapon for loadouts.")
+					end
+					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
+					giveGun(gunToBuy, PlayerIndex)
+					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+				else
+					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
+				end
+			else
+				rprint(PlayerIndex, "An invalid gun was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
+	end
+end
+
+function buyVehicle(PlayerIndex, vehicleToBuy)
+	if playerIsInArea(PlayerIndex, "dealership") then
+		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
+			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
+				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
+					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
+						--then they can buy it
+							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+							if updatedVehicles[vehicleToBuy] == nil then
+								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+								updatedVehicles[vehicleToBuy] = vehicleToBuy
+								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
+								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
+								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
+							else
+								rprint(PlayerIndex, "You already own this vehicle!")
+							end
+					else
+						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
+					end
+				else
+					rprint(PlayerIndex, "This vehicle is not for sale.")
+				end
+			else
+				rprint(PlayerIndex, "An invalid vehicle name was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
 	end
 end
 
@@ -1053,7 +1089,7 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					rprint(PlayerIndex, "This command is WIP (You entered "..commandargs[1]..")")
 				return false
 			elseif commandargs[1] == "hirecop" then
-					if adminLevel >= 4 or localPlayer:getProfession() == "sheriff" then
+					if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
 						table.remove(commandargs,1)
 						local hiredCop = tonumber(commandargs[1])
 						if player_present(hiredCop) then
@@ -1174,7 +1210,7 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					rprint(PlayerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
 				elseif commandargs[1] == "job" then
 					if localPlayer.professionLimit ~= 0 then
-						rprint(PlayerIndex, "You are a"..localPlayer:getProfession())
+						rprint(PlayerIndex, "You are a"..localPlayer:getProfession():getTitle())
 					end
 				elseif commandargs[1] == "rank" then
 					local rankNumber = localPlayer:getCopRank()
@@ -1187,13 +1223,13 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					end
 				elseif commandargs[1] == "stats" then
 					rprint(PlayerIndex, "Player Statistics for: "..ActivePlayers[PlayerIndex]:getName())
-					rprint(PlayerIndex, "You are a "..ActivePlayers[PlayerIndex]:getProfession())
+					rprint(PlayerIndex, "You are a "..ActivePlayers[PlayerIndex]:getProfession():getTitle())
 					rprint(PlayerIndex, "You have "..ActivePlayers[PlayerIndex]:getKarma().." karma points.")
 				elseif commandargs[1] == "all" then
 					rprint(PlayerIndex, "name: "..ActivePlayers[PlayerIndex]:getName())
 					rprint(PlayerIndex, "hash: "..ActivePlayers[PlayerIndex]:getHash())
 					rprint(PlayerIndex, "bucks: "..ActivePlayers[PlayerIndex]:getBucks())
-					rprint(PlayerIndex, "profession: "..ActivePlayers[PlayerIndex]:getProfession())
+					rprint(PlayerIndex, "profession: "..ActivePlayers[PlayerIndex]:getProfession():getTitle())
 					rprint(PlayerIndex, "apartment: "..ActivePlayers[PlayerIndex]:getApartment())
 					rprint(PlayerIndex, "cop position: "..ActivePlayers[PlayerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[PlayerIndex]:getCopPosition()]..")")
 					rprint(PlayerIndex, "authority: "..ActivePlayers[PlayerIndex]:getCopAuthority())

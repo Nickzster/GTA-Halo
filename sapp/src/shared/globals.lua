@@ -2,6 +2,7 @@
 -- import helpers.new end
 -- import core.objects.GameEvent end
 -- import shared.config end
+-- import core.objects.Profession end
 -- END_IMPORT
 
 
@@ -21,14 +22,7 @@ end
 
 ClaimedRewards = {}
 
-PROFESSIONS = {
-    ["sheriff"] = 10000,
-    ["deputy"] = 7500,
-    ["officer"] = 5000,
-    ["civilian"] = 1500,
-    ["robber"] = 0,
-    ["delinquent"] = 0
-}
+
 COPPOSITIONS = {
     [0] = "civilian",
     [1] = "officer",

@@ -25,7 +25,7 @@ function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
 	outputFile:write("\n")
 	outputFile:write("$PLAYER_PROFESSION")
 	outputFile:write("\n")
-	outputFile:write(ActivePlayers[PlayerIndex]:getProfession())
+	outputFile:write(ActivePlayers[PlayerIndex]:getProfession():getKey())
 	outputFile:write("\n")
 	outputFile:write("$PLAYER_KARMA")
 	outputFile:write("\n")
@@ -90,6 +90,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	local tempVehicleTable = {}
 	local tempWeaponTable = {}
 	local playerName = get_var(PlayerIndex, "$name")
+	local defaultProfession = PROFESSIONS["civilian"]
 	if inputFile ~= nil then --if the file exists, then read the data in that way
 		say(PlayerIndex, "Welcome BACK, "..playerName.."!")
 		local endOfFile = false
@@ -103,7 +104,8 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 			elseif valueToCompare == "$PLAYER_BUCKS" then
 				tempInventory:setBucks(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_PROFESSION" then
-				tempInventory:setProfession(inputFile:read("*l"))
+				local professionKey = inputFile:read("*l") or "civilian"
+				tempInventory:setProfession(PROFESSIONS[professionKey])
 			elseif valueToCompare == "$PLAYER_KARMA" then
 				tempInventory:setKarma(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_APARTMENTSTATUS" then
@@ -159,7 +161,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 		tempInventory:setKarma(1)
 		tempInventory:setCopPosition("")
 		tempInventory:setCopAuthority(0)
-		tempInventory:setProfession("civilian")
+		tempInventory:setProfession(defaultProfession)
 		tempInventory:setFugitiveStatus(0)
 		tempInventory:setLoadout("empty","empty")
 		tempInventory:setJailStatus(0)
@@ -169,11 +171,11 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	ActivePlayers[PlayerIndex] = tempInventory
 	ActivePlayersOwnedCars[PlayerIndex] = tempVehicleTable
 	ActivePlayersOwnedWeapons[PlayerIndex] = tempWeaponTable
-	if ActivePlayers[PlayerIndex]:getProfession() == "officer" then
+	if ActivePlayers[PlayerIndex]:getProfession():getTitle() == "Officer" then
 		AlertServer(nil, "An officer has just signed in.")
-	elseif ActivePlayers[PlayerIndex]:getProfession() == "deputy" then
+	elseif ActivePlayers[PlayerIndex]:getProfession():getTitle()  == "Deputy" then
 		AlertServer(nil, "The deputy is in town!")
-	elseif ActivePlayers[PlayerIndex]:getProfession() == "sheriff" then
+	elseif ActivePlayers[PlayerIndex]:getProfession():getTitle()  == "Sheriff" then
 		AlertServer(nil, "Look out boys! The Sheriff's in town.")
 	end
 end

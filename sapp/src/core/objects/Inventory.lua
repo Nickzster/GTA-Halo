@@ -59,14 +59,12 @@ function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. 
 	end
 end
 --profession setters and getters
-function Inventory:setProfession(professionToBe) 
-    if PROFESSIONS[professionToBe] ~= nil then --if this profession is in the list of professions
-		self.profession = professionToBe  --then set it to the player's profession value
-		return true
-    else
-        return false --otherwise return false, and deny the addition of the profession to the player.
-    end
+
+function Inventory:setProfession(professionToBe)
+	self.profession = professionToBe 
 end
+
+
 function Inventory:getProfession()
     return self.profession
 end
