@@ -108,10 +108,15 @@ COMMAND_NAMES = {
     ["pay"] = "pay",
     ["save"] = "save",
     ["buy"] = "buy",
-    ["drop"] = "drop"
+    ["drop"] = "drop",
+    ["wallet"] = "wallet"
 }
 
 
+
+function validateCommand(commandNameToCheck, expectedCommandName)
+    return commandNameToCheck == COMMAND_NAMES[expectedCommandName]
+end
 
 -- GameEvent object, representing a single event.
 
@@ -396,10 +401,6 @@ waitingToReward = 0
 needToResetGame = false
 --end of dynamic tables
 --end of Startup stuff
-
-function validateCommand(commandNameToCheck, expectedCommandName)
-    return commandNameToCheck == COMMAND_NAMES[expectedCommandName]
-end
 
 function playerIsAdmin(playerIndex)
     local adminLevel = tonumber(get_var(playerIndex, "$lvl"))
@@ -827,108 +828,6 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	end
 end
 
-function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
-	
-	if not validateCommand(commandName, 'park') then return false end
-
-	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
-		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
-			execute_command("vdel " .. playerIndex) --then park their vehicle
-			PlayerSpawnedVehicles[playerIndex] = 0
-		else
-			rprint(playerIndex, "You need to be at a garage in order to park your car!")
-		end
-	else --otherwise, let them know that they need to exit the vehicle to park it.
-		rprint(playerIndex, "You need to exit the vehicle first!")
-	end
-
-	return true
-end
-
-function handleBuyCommand(playerIndex, commandName, commandArgs)
-    if not validateCommand(commandName, "buy") then return false end
-
-    local localPlayer = ActivePlayers[playerIndex]
-
-    if VEHICLEPRICES[commandArgs[1]] ~= nil then
-        buyVehicle(playerIndex, commandArgs[1])
-    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
-        buyGun(playerIndex, commandArgs[1])
-    elseif commandArgs[1] == "ammo" then
-        if playerIsInArea(playerIndex, "gunstore") then
-            if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
-                --then allow the purchase
-                localPlayer:deductBucks(MAX_AMMO_PRICE)
-                execute_command("ammo "..playerIndex.." 999 0")
-                rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
-            else
-                --otherwise tell them they do not have enough
-                rprint(playerIndex, "You do not have enough money to buy ammo.")
-            end
-        else
-            rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
-        end
-    else
-        rprint(playerIndex, "Invalid object specified.")
-    end
-
-    return true
-end
-
-function handleDropCommand(playerIndex, commandName, commandArgs)
-
-    if validateCommand(commandName) then return false end
-
-    drop_weapon(playerIndex)
-
-    return true
-
-end
-
-function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
-    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
-    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
-        local tag_array = read_dword(0x40440000)
-        for i=0,read_word(0x4044000C)-1 do
-            local tag = tag_array + i * 0x20
-            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
-                local tag_data = read_dword(tag + 0x14)
-                local mp_info = read_dword(tag_data + 0x164 + 4)
-                for j=0,read_dword(tag_data + 0x164)-1 do
-                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
-                end
-            end
-        end
-    end
-    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
-    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
-        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
-            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
-                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
-            end
-        end
-        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
-    end
-    return true
-end
-
-
-
-
-function handleCopCommand(playerIndex, commandName, commandArgs) 
-    if not validateCommand(commandName, "cop") then return false end
-
-	local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
-	if tempCopStatus > 0 then
-		table.remove(commandargs,1)
-		copCommands(playerIndex, commandargs)
-	else
-		rprint(playerIndex, "You must be a cop to execute a cop command!")
-	end
-
-    return true
-end
-
 function handlePayCommand(playerIndex, commandName, commandArgs)
 
     if not validateCommand(commandName, 'pay') then return false end
@@ -943,213 +842,6 @@ function handlePayCommand(playerIndex, commandName, commandArgs)
 
     return true
 
-end
-
-function CommandHandler (playerIndex,Command,Environment,Password)
-	local returnValue = true
-    if desync() == false then
-		if player_present(playerIndex) then
-			Command = string.lower(Command)
-			local adminLevel = tonumber(get_var(playerIndex, "$lvl")) -- Gets player admin level
-			local localPlayer = ActivePlayers[playerIndex]
-			
-			local commandargs = splitString(Command)
-			local commandArgs = splitString(Command)
-			local commandName = table.remove(commandArgs, 1)
-
-			if handleDriveCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
-			if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleCopCommand(playerIndex, commandName, commandArgs) then return false end 
-			if handleHireCopCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleShowIDCommand(playerIndex, commandName, commandArgs) then return false end
-			if handleDropCommand(playerIndex, commandName, commandArgs) then return false end
-			
-			if commandargs[1] == "redeem" then
-				if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
-					table.remove(commandargs,1)
-					local typeOfEvent = commandargs[1]
-					if typeOfEvent ~= nil then
-						if typeOfEvent == "gun" and gunEvent ~= false then
-							if playerIsInArea(playerIndex, "gunstore") then
-								local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
-								assign_weapon(gunToGive, playerIndex)
-								rprint(playerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
-							else
-								rprint(playerIndex, "You must be at a gun store to redeem this item.")
-							end
-						elseif typeOfEvent == "money" and moneyEvent ~= false then
-							if ClaimedRewards[get_var(playerIndex, "$hash")] == nil then
-								rprint(playerIndex, "Congratulations. You just earned free money!")
-								ActivePlayers[playerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
-								ClaimedRewards[get_var(playerIndex, "$hash")] = get_var(playerIndex, "$hash")
-							else
-								rprint(playerIndex, "You have already claimed this reward!")
-							end
-						elseif typeOfEvent == "car" and carEvent ~= false then
-							if playerIsInArea(playerIndex, "dealership") then
-								local updatedVehicles = ActivePlayersOwnedCars[playerIndex]
-								if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
-									updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
-									ActivePlayersOwnedCars[playerIndex] = updatedVehicles
-									rprint(playerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
-								else
-									rprint(playerIndex, "You already own this vehicle!")
-								end
-							else
-								rprint(playerIndex, "You must be at a dealership in order to redeem this vehicle.")
-							end
-						else
-							rprint(playerIndex, "You did not specify a correct redemption value, OR")
-							rprint(playerIndex, "That specific event is not activated.")
-						end
-					else
-						rprint(playerIndex, "You did not specify a redemption value!")
-					end
-				else
-					rprint(playerIndex, "There is currently no active freebe events.")
-				end
-				return false
-			elseif commandargs[1] == "activateevent" then
-				if adminLevel >= 4 then
-					table.remove(commandargs,1)
-					local typeOfEvent = commandargs[1]
-					if typeOfEvent ~= nil then
-						if typeOfEvent == "gun" and gunEvent == false then
-							say_all("A GUN Event has been activated.")
-							say_all("Head to the gun store to redeem a free gun!")
-							gunEvent = true
-						elseif typeOfEvent == "car" and carEvent == false then
-							say_all("A CAR Event has been activated.")
-							say_all("Head to the dealership to redeem a free car!")
-							carEvent = true
-						elseif typeOfEvent == "money" and moneyEvent == false then
-							say_all("A MONEY event has been activated.")
-							say_all ("Type in /redeem money ANYWHERE to get free money!")
-							moneyEvent = true
-						else
-							rprint(playerIndex, "You did not specify a valid event! OR")
-							rprint(playerIndex, "That event has already been activated!")
-						end
-					else
-						rprint(playerIndex, "You did not specify the type of event to activate!")
-					end		
-				else
-					rprint(playerIndex, "You cannot activate a redemption event.")
-				end
-				return false
-			elseif commandargs[1] == "check" then
-				table.remove(commandargs,1)
-				if #commandargs == 0 then
-					rprint(playerIndex, "You need to specify what you want to check!")
-				elseif commandargs[1] == "loadout" then
-					rprint(playerIndex, "Primary Weapon: "..localPlayer:getPrimaryWeapon())
-					rprint(playerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
-				elseif commandargs[1] == "job" then
-					if localPlayer.professionLimit ~= 0 then
-						rprint(playerIndex, "You are a"..localPlayer:getProfession():getTitle())
-					end
-				elseif commandargs[1] == "rank" then
-					local rankNumber = localPlayer:getCopRank()
-					if rankNumber == 0 then
-						rprint(playerIndex, "You are not a cop.")
-					elseif rankNumber == 1 then
-						rprint(playerIndex, "Deputy")
-					elseif rankNumber == 2 then
-						rprint(playerIndex, "Sheriff")
-					end
-				elseif commandargs[1] == "stats" then
-					rprint(playerIndex, "Player Statistics for: "..ActivePlayers[playerIndex]:getName())
-					rprint(playerIndex, "You are a "..ActivePlayers[playerIndex]:getProfession():getTitle())
-					rprint(playerIndex, "You have "..ActivePlayers[playerIndex]:getKarma().." karma points.")
-				elseif commandargs[1] == "all" then
-					rprint(playerIndex, "name: "..ActivePlayers[playerIndex]:getName())
-					rprint(playerIndex, "hash: "..ActivePlayers[playerIndex]:getHash())
-					rprint(playerIndex, "bucks: "..ActivePlayers[playerIndex]:getBucks())
-					rprint(playerIndex, "profession: "..ActivePlayers[playerIndex]:getProfession():getTitle())
-					rprint(playerIndex, "apartment: "..ActivePlayers[playerIndex]:getApartment())
-					rprint(playerIndex, "cop position: "..ActivePlayers[playerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[playerIndex]:getCopPosition()]..")")
-					rprint(playerIndex, "authority: "..ActivePlayers[playerIndex]:getCopAuthority())
-					rprint(playerIndex, "fugitive status: "..ActivePlayers[playerIndex]:getFugitiveStatus())
-					rprint(playerIndex, "karma: "..ActivePlayers[playerIndex]:getKarma())
-					rprint(playerIndex, "primary weapon: "..ActivePlayers[playerIndex]:getPrimaryWeapon())
-					rprint(playerIndex, "secondary weapon: "..ActivePlayers[playerIndex]:getSecondaryWeapon())
-					rprint(playerIndex, "jail status: "..ActivePlayers[playerIndex]:getJailStatus())
-				end
-				return false
-			elseif commandargs[1] == "wallet" then --/checkstatus -> debug function
-				local aTable = ActivePlayers[playerIndex]
-				rprint(playerIndex, "Wallet: "..niceMoneyDisplay(localPlayer:getBucks()))
-				return false
-			elseif commandargs[1] == "loadout" then
-				if playerIsInArea(playerIndex, "gunstore") then
-					local ownedWeapons = ActivePlayersOwnedWeapons[playerIndex]
-					if tonumber(ActivePlayers[playerIndex]:getBucks()) >= LOADOUT_CHANGE_PRICE then
-						if ownedWeapons[commandargs[2]] == nil  and ownedWeapons[commandargs[3]] == nil then
-							rprint(playerIndex, "Loadout command was not issued correctly.")
-							rprint(playerIndex, "You specified one or more weapons you do not own.")
-						else
-							localPlayer:deductBucks(LOADOUT_CHANGE_PRICE)
-							localPlayer:setLoadoutPrimary(commandargs[2])
-							localPlayer:setLoadoutSecondary(commandargs[3])
-							rprint(playerIndex, "You have successfully changed your loadout for "..niceMoneyDisplay(LOADOUT_CHANGE_PRICE))
-							rprint(playerIndex, "Primary: "..localPlayer:getPrimaryWeapon()..", Secondary: "..localPlayer:getSecondaryWeapon())
-						end
-					else
-						rprint(playerIndex, "You do not have enough bucks to change your loadout.")
-					end
-				else
-					rprint(playerIndex, "You must be at a gunstore to change your loadout.")
-				end		
-				return false
-			elseif commandargs[1] == "owned" then
-				table.remove(commandargs,1)
-				if commandargs[1] == "cars" or commandargs[1] == "vehicles" then
-					rprint(playerIndex, "You own the following cars: ")
-					local vehicleTable = ActivePlayersOwnedCars[playerIndex]
-					for vehicleName, veh in pairs(vehicleTable) do
-						rprint(playerIndex, vehicleName)
-					end
-				elseif commandargs[1] == "guns" or commandargs[1] == "weapons" then
-					rprint(playerIndex, "You own the following weapons: ")
-					local weaponTable = ActivePlayersOwnedWeapons[playerIndex]
-					for weaponName, veh in pairs(weaponTable) do
-						rprint(playerIndex, weaponName)
-					end
-				end
-				return false
-			elseif commandargs[1] == "betatester" then
-				-- localPlayer:setBucks(15000)
-				-- rprint(playerIndex, "Be Careful! This will SET your bucks to 15,000!")
-				return false
-			end
-		end
-	else
-		rprint(playerIndex, "You cannot issue a command while the server is desynced!")
-	end
-
-end
-
-
-function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a specified vehicle for the player that requests it.
-	if not validateCommand(commandName, 'drive') then return false end
-	local vehicleToDrive = commandArgs[1]
-
-	local hasActiveVehicle = PlayerSpawnedVehicles[playerIndex] == 1
-	local isInGarage = playerIsInArea(playerIndex, "garage") == true
-	local playerOwnsVehicle = ownsThisCar(playerIndex, vehicleToDrive) == true
-
-	if hasActiveVehicle then rprint(playerIndex, "You already have a summoned vehicle!"); return true end
-
-	if not isInGarage then rprint(playerIndex, "You need to be at a valid garage location!"); return true end
-
-	if not playerOwnsVehicle then rprint(playerIndex, "You do not own this vehicle."); return true end
-
-	Spawn(playerIndex, vehicleToDrive) --spawn it
-
-	return true
 end
 ------------------------------------------------------------
 -- from sam_lie
@@ -1219,69 +911,84 @@ function niceMoneyDisplay(bucksToDisplay)
 	return format_num(bucksToDisplay, 2, "$")
 end
 
-function handleSaveCommand(playerIndex, commandName, commandArgs) 
-    if not validateCommand(commandName, "save") then return false end
 
-    writePlayerData(playerIndex)
+function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a specified vehicle for the player that requests it.
+	if not validateCommand(commandName, 'drive') then return false end
+	local vehicleToDrive = commandArgs[1]
 
-    return true
+	local hasActiveVehicle = PlayerSpawnedVehicles[playerIndex] == 1
+	local isInGarage = playerIsInArea(playerIndex, "garage") == true
+	local playerOwnsVehicle = ownsThisCar(playerIndex, vehicleToDrive) == true
+
+	if hasActiveVehicle then rprint(playerIndex, "You already have a summoned vehicle!"); return true end
+
+	if not isInGarage then rprint(playerIndex, "You need to be at a valid garage location!"); return true end
+
+	if not playerOwnsVehicle then rprint(playerIndex, "You do not own this vehicle."); return true end
+
+	Spawn(playerIndex, vehicleToDrive) --spawn it
+
+	return true
 end
 
-function splitString (inputstr, sep)
-        local t={}
-        if sep == nil then
-            for str in inputstr:gmatch("%w+") do 
-                table.insert(t, str)
-            end
-        else
-            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-                table.insert(t, str)
-            end
-        end
-        return t
+function CommandHandler (playerIndex,Command,Environment,Password)
+	if player_present(playerIndex) then
+		Command = string.lower(Command)
+		
+		local commandargs = splitString(Command)
+		local commandArgs = splitString(Command)
+		local commandName = table.remove(commandArgs, 1)
+
+		if handleDriveCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
+		if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleCopCommand(playerIndex, commandName, commandArgs) then return false end 
+		if handleHireCopCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleShowIDCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleDropCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleRedeemCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleActivateEventCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleCheckCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleWalletCommand(playerIndex, commandName, commandArgs) then return false end 
+		if handleLoadoutCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleOwnedCommand(playerIndex, commandName, commandArgs) then return false end
+	end
+	return true
 end
 
 
-function handleHireCopCommand(playerIndex, commandName, commandArgs)
 
-    if not validateCommand(commandName, "hirecop") then return false end
+function handleDropCommand(playerIndex, commandName, commandArgs)
 
-    if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
-        table.remove(commandargs,1)
-        local hiredCop = tonumber(commandargs[1])
-        if player_present(hiredCop) then
-            if ActivePlayers[hiredCop]:setCopPosition(tonumber(commandargs[2])) then
-                rprint(hiredCop, "You are now a "..COPPOSITIONS[tonumber(commandargs[2])])
-                rprint(playerIndex, "You have successfully changed "..ActivePlayers[hiredCop]:getName().." to be a "..COPPOSITIONS[tonumber(commandargs[2])])
-                ActivePlayers[hiredCop]:setProfession(COPPOSITIONS[tonumber(commandargs[2])])
-                if ActivePlayers[hiredCop]:getCopPosition() == 0 then
-                    rprint(playerIndex, "AUTHORITY LOST")
-                    ActivePlayers[hiredCop]:setCopAuthority(0)
-                else
-                    rprint(playerIndex, "AUTHORITY GAINED")
-                    ActivePlayers[hiredCop]:setCopAuthority(1)
-                end
-            else
-                rprint(playerIndex, "You did not specify a valid cop rank.")
-            end
-        else
-            rprint(playerIndex, "This person is not active on the server right now.")
-        end
-    else
-        rprint(playerIndex, "You do not have permission to hire cops!")
-    end
-    rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
+    if not validateCommand(commandName, "drop") then return false end
+
+    drop_weapon(playerIndex)
 
     return true
+
 end
 
-function handleShowIDCommand(playerIndex, commandName, commandArgs)
-    if not validateCommand(commandName, "showid") then return false end
+function handleOwnedCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "owned") then return false end
 
-    ShowIDFunction(playerIndex)
-    
+    table.remove(commandargs,1)
+				if commandargs[1] == "cars" or commandargs[1] == "vehicles" then
+					rprint(playerIndex, "You own the following cars: ")
+					local vehicleTable = ActivePlayersOwnedCars[playerIndex]
+					for vehicleName, veh in pairs(vehicleTable) do
+						rprint(playerIndex, vehicleName)
+					end
+				elseif commandargs[1] == "guns" or commandargs[1] == "weapons" then
+					rprint(playerIndex, "You own the following weapons: ")
+					local weaponTable = ActivePlayersOwnedWeapons[playerIndex]
+					for weaponName, veh in pairs(weaponTable) do
+						rprint(playerIndex, weaponName)
+					end
+				end
+
     return true
-
 end
 
 function copCommands(PlayerIndex, commandargs)
@@ -1374,6 +1081,335 @@ function copCommands(PlayerIndex, commandargs)
 	else
 		rprint(PlayerIndex, "Invalid cop command was issued!")
 	end
+end
+
+function handleRedeemCommand(playerIndex, commandName, commandArgs)
+
+    if  not validateCommand(commandName, "redeem") then return false end
+
+    if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
+        table.remove(commandargs,1)
+        local typeOfEvent = commandargs[1]
+        if typeOfEvent ~= nil then
+            if typeOfEvent == "gun" and gunEvent ~= false then
+                if playerIsInArea(playerIndex, "gunstore") then
+                    local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
+                    assign_weapon(gunToGive, playerIndex)
+                    rprint(playerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
+                else
+                    rprint(playerIndex, "You must be at a gun store to redeem this item.")
+                end
+            elseif typeOfEvent == "money" and moneyEvent ~= false then
+                if ClaimedRewards[get_var(playerIndex, "$hash")] == nil then
+                    rprint(playerIndex, "Congratulations. You just earned free money!")
+                    ActivePlayers[playerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
+                    ClaimedRewards[get_var(playerIndex, "$hash")] = get_var(playerIndex, "$hash")
+                else
+                    rprint(playerIndex, "You have already claimed this reward!")
+                end
+            elseif typeOfEvent == "car" and carEvent ~= false then
+                if playerIsInArea(playerIndex, "dealership") then
+                    local updatedVehicles = ActivePlayersOwnedCars[playerIndex]
+                    if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
+                        updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
+                        ActivePlayersOwnedCars[playerIndex] = updatedVehicles
+                        rprint(playerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
+                    else
+                        rprint(playerIndex, "You already own this vehicle!")
+                    end
+                else
+                    rprint(playerIndex, "You must be at a dealership in order to redeem this vehicle.")
+                end
+            else
+                rprint(playerIndex, "You did not specify a correct redemption value, OR")
+                rprint(playerIndex, "That specific event is not activated.")
+            end
+        else
+            rprint(playerIndex, "You did not specify a redemption value!")
+        end
+    else
+        rprint(playerIndex, "There is currently no active freebe events.")
+    end
+
+    return true
+
+end
+
+function splitString (inputstr, sep)
+        local t={}
+        if sep == nil then
+            for str in inputstr:gmatch("%w+") do 
+                table.insert(t, str)
+            end
+        else
+            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+            end
+        end
+        return t
+end
+
+
+function handleHireCopCommand(playerIndex, commandName, commandArgs)
+
+    if not validateCommand(commandName, "hirecop") then return false end
+
+    if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
+        table.remove(commandargs,1)
+        local hiredCop = tonumber(commandargs[1])
+        if player_present(hiredCop) then
+            if ActivePlayers[hiredCop]:setCopPosition(tonumber(commandargs[2])) then
+                rprint(hiredCop, "You are now a "..COPPOSITIONS[tonumber(commandargs[2])])
+                rprint(playerIndex, "You have successfully changed "..ActivePlayers[hiredCop]:getName().." to be a "..COPPOSITIONS[tonumber(commandargs[2])])
+                ActivePlayers[hiredCop]:setProfession(COPPOSITIONS[tonumber(commandargs[2])])
+                if ActivePlayers[hiredCop]:getCopPosition() == 0 then
+                    rprint(playerIndex, "AUTHORITY LOST")
+                    ActivePlayers[hiredCop]:setCopAuthority(0)
+                else
+                    rprint(playerIndex, "AUTHORITY GAINED")
+                    ActivePlayers[hiredCop]:setCopAuthority(1)
+                end
+            else
+                rprint(playerIndex, "You did not specify a valid cop rank.")
+            end
+        else
+            rprint(playerIndex, "This person is not active on the server right now.")
+        end
+    else
+        rprint(playerIndex, "You do not have permission to hire cops!")
+    end
+    rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
+
+    return true
+end
+
+
+function handleCopCommand(playerIndex, commandName, commandArgs) 
+    if not validateCommand(commandName, "cop") then return false end
+
+	local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
+	if tempCopStatus > 0 then
+		table.remove(commandargs,1)
+		copCommands(playerIndex, commandargs)
+	else
+		rprint(playerIndex, "You must be a cop to execute a cop command!")
+	end
+
+    return true
+end
+
+function handleBuyCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "buy") then return false end
+
+    local localPlayer = ActivePlayers[playerIndex]
+
+    if VEHICLEPRICES[commandArgs[1]] ~= nil then
+        buyVehicle(playerIndex, commandArgs[1])
+    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
+        buyGun(playerIndex, commandArgs[1])
+    elseif commandArgs[1] == "ammo" then
+        if playerIsInArea(playerIndex, "gunstore") then
+            if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
+                --then allow the purchase
+                localPlayer:deductBucks(MAX_AMMO_PRICE)
+                execute_command("ammo "..playerIndex.." 999 0")
+                rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
+            else
+                --otherwise tell them they do not have enough
+                rprint(playerIndex, "You do not have enough money to buy ammo.")
+            end
+        else
+            rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
+        end
+    else
+        rprint(playerIndex, "Invalid object specified.")
+    end
+
+    return true
+end
+
+function handleSaveCommand(playerIndex, commandName, commandArgs) 
+    if not validateCommand(commandName, "save") then return false end
+
+    writePlayerData(playerIndex)
+
+    return true
+end
+
+function handleLoadoutCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "loadout") then return false end
+
+    local localPlayer = ActivePlayers[playerIndex]
+    
+    if playerIsInArea(playerIndex, "gunstore") then
+        local ownedWeapons = ActivePlayersOwnedWeapons[playerIndex]
+        if tonumber(ActivePlayers[playerIndex]:getBucks()) >= LOADOUT_CHANGE_PRICE then
+            if ownedWeapons[commandargs[2]] == nil  and ownedWeapons[commandargs[3]] == nil then
+                rprint(playerIndex, "Loadout command was not issued correctly.")
+                rprint(playerIndex, "You specified one or more weapons you do not own.")
+            else
+                localPlayer:deductBucks(LOADOUT_CHANGE_PRICE)
+                localPlayer:setLoadoutPrimary(commandargs[2])
+                localPlayer:setLoadoutSecondary(commandargs[3])
+                rprint(playerIndex, "You have successfully changed your loadout for "..niceMoneyDisplay(LOADOUT_CHANGE_PRICE))
+                rprint(playerIndex, "Primary: "..localPlayer:getPrimaryWeapon()..", Secondary: "..localPlayer:getSecondaryWeapon())
+            end
+        else
+            rprint(playerIndex, "You do not have enough bucks to change your loadout.")
+        end
+    else
+        rprint(playerIndex, "You must be at a gunstore to change your loadout.")
+    end		
+
+    return true
+
+end
+
+function handleWalletCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "wallet") then return false end
+
+    local localPlayer = ActivePlayers[playerIndex]
+    local aTable = ActivePlayers[playerIndex]
+    rprint(playerIndex, "Wallet: "..niceMoneyDisplay(localPlayer:getBucks()))
+
+    return true
+end
+
+function handleShowIDCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "showid") then return false end
+
+    ShowIDFunction(playerIndex)
+    
+    return true
+
+end
+
+function handleActivateEventCommand(playerIndex, commandName, commandArgs)
+
+    if not validateCommand(commandName, "activateevent") then return false end
+
+    if adminLevel >= 4 then
+        table.remove(commandargs,1)
+        local typeOfEvent = commandargs[1]
+        if typeOfEvent ~= nil then
+            if typeOfEvent == "gun" and gunEvent == false then
+                say_all("A GUN Event has been activated.")
+                say_all("Head to the gun store to redeem a free gun!")
+                gunEvent = true
+            elseif typeOfEvent == "car" and carEvent == false then
+                say_all("A CAR Event has been activated.")
+                say_all("Head to the dealership to redeem a free car!")
+                carEvent = true
+            elseif typeOfEvent == "money" and moneyEvent == false then
+                say_all("A MONEY event has been activated.")
+                say_all ("Type in /redeem money ANYWHERE to get free money!")
+                moneyEvent = true
+            else
+                rprint(playerIndex, "You did not specify a valid event! OR")
+                rprint(playerIndex, "That event has already been activated!")
+            end
+        else
+            rprint(playerIndex, "You did not specify the type of event to activate!")
+        end		
+    else
+        rprint(playerIndex, "You cannot activate a redemption event.")
+    end
+
+    return true
+
+end
+
+function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
+    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
+    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
+        local tag_array = read_dword(0x40440000)
+        for i=0,read_word(0x4044000C)-1 do
+            local tag = tag_array + i * 0x20
+            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
+                local tag_data = read_dword(tag + 0x14)
+                local mp_info = read_dword(tag_data + 0x164 + 4)
+                for j=0,read_dword(tag_data + 0x164)-1 do
+                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
+                end
+            end
+        end
+    end
+    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
+    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
+        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
+            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
+                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
+            end
+        end
+        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
+    end
+    return true
+end
+
+
+
+function handleCheckCommand(playerIndex, commandName, commandArgs)
+    
+    if not validateCommand(commandName, "check") then return false end
+
+    table.remove(commandargs,1)
+				if #commandargs == 0 then
+					rprint(playerIndex, "You need to specify what you want to check!")
+				elseif commandargs[1] == "loadout" then
+					rprint(playerIndex, "Primary Weapon: "..localPlayer:getPrimaryWeapon())
+					rprint(playerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
+				elseif commandargs[1] == "job" then
+					if localPlayer.professionLimit ~= 0 then
+						rprint(playerIndex, "You are a"..localPlayer:getProfession():getTitle())
+					end
+				elseif commandargs[1] == "rank" then
+					local rankNumber = localPlayer:getCopRank()
+					if rankNumber == 0 then
+						rprint(playerIndex, "You are not a cop.")
+					elseif rankNumber == 1 then
+						rprint(playerIndex, "Deputy")
+					elseif rankNumber == 2 then
+						rprint(playerIndex, "Sheriff")
+					end
+				elseif commandargs[1] == "stats" then
+					rprint(playerIndex, "Player Statistics for: "..ActivePlayers[playerIndex]:getName())
+					rprint(playerIndex, "You are a "..ActivePlayers[playerIndex]:getProfession():getTitle())
+					rprint(playerIndex, "You have "..ActivePlayers[playerIndex]:getKarma().." karma points.")
+				elseif commandargs[1] == "all" then
+					rprint(playerIndex, "name: "..ActivePlayers[playerIndex]:getName())
+					rprint(playerIndex, "hash: "..ActivePlayers[playerIndex]:getHash())
+					rprint(playerIndex, "bucks: "..ActivePlayers[playerIndex]:getBucks())
+					rprint(playerIndex, "profession: "..ActivePlayers[playerIndex]:getProfession():getTitle())
+					rprint(playerIndex, "apartment: "..ActivePlayers[playerIndex]:getApartment())
+					rprint(playerIndex, "cop position: "..ActivePlayers[playerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[playerIndex]:getCopPosition()]..")")
+					rprint(playerIndex, "authority: "..ActivePlayers[playerIndex]:getCopAuthority())
+					rprint(playerIndex, "fugitive status: "..ActivePlayers[playerIndex]:getFugitiveStatus())
+					rprint(playerIndex, "karma: "..ActivePlayers[playerIndex]:getKarma())
+					rprint(playerIndex, "primary weapon: "..ActivePlayers[playerIndex]:getPrimaryWeapon())
+					rprint(playerIndex, "secondary weapon: "..ActivePlayers[playerIndex]:getSecondaryWeapon())
+					rprint(playerIndex, "jail status: "..ActivePlayers[playerIndex]:getJailStatus())
+				end
+
+    return true
+
+end
+
+function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
+	
+	if not validateCommand(commandName, 'park') then return false end
+
+	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
+		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
+			execute_command("vdel " .. playerIndex) --then park their vehicle
+			PlayerSpawnedVehicles[playerIndex] = 0
+		else
+			rprint(playerIndex, "You need to be at a garage in order to park your car!")
+		end
+	else --otherwise, let them know that they need to exit the vehicle to park it.
+		rprint(playerIndex, "You need to exit the vehicle first!")
+	end
+
+	return true
 end
 
 

@@ -18,6 +18,7 @@ function handleOwnedCommand(playerIndex, commandName, commandArgs)
 					for weaponName, veh in pairs(weaponTable) do
 						rprint(playerIndex, weaponName)
 					end
+				end
 
     return true
 end

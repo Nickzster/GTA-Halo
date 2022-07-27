@@ -48,3 +48,4 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 	end
 	return true
 end
+
