@@ -11,14 +11,18 @@
 -- import core.commands.handleHireCopCommand end
 -- import core.commands.handleShowIDCommand end
 -- import core.commands.handleDropCommand end
+-- import core.commands.handleRedeemCommand end
+-- import core.commands.handleActivateEventCommand end
+-- import core.commands.handleCheckCommand end
+-- import core.commands.handleWalletCommand end
+-- import core.commands.handleLoadoutCommand end
+-- import core.commands.handleOwnedCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
 -- END_IMPORT
 
 function CommandHandler (playerIndex,Command,Environment,Password)
-	local returnValue = true
-    if desync() == false then
 		if player_present(playerIndex) then
 			Command = string.lower(Command)
 			local adminLevel = tonumber(get_var(playerIndex, "$lvl")) -- Gets player admin level
@@ -40,11 +44,10 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleRedeemCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleActivateEventCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleCheckCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleWalletCommand(playerIndex, commandName, commandArgs) then return false end 
+			if handleLoadoutCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleOwnedCommand(playerIndex, commandName, commandArgs) then return false end
 
-			if commandargs[1] == "wallet" then --/checkstatus -> debug function
-				local aTable = ActivePlayers[playerIndex]
-				rprint(playerIndex, "Wallet: "..niceMoneyDisplay(localPlayer:getBucks()))
-				return false
 			elseif commandargs[1] == "loadout" then
 				if playerIsInArea(playerIndex, "gunstore") then
 					local ownedWeapons = ActivePlayersOwnedWeapons[playerIndex]
@@ -80,16 +83,8 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 					for weaponName, veh in pairs(weaponTable) do
 						rprint(playerIndex, weaponName)
 					end
-				end
-				return false
-			elseif commandargs[1] == "betatester" then
-				-- localPlayer:setBucks(15000)
-				-- rprint(playerIndex, "Be Careful! This will SET your bucks to 15,000!")
-				return false
 			end
-		end
-	else
-		rprint(playerIndex, "You cannot issue a command while the server is desynced!")
+		return false
 	end
 
 end
