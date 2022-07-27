@@ -1,9 +1,51 @@
---NO_IMPORTS
+--BEGIN_IMPORT
+-- import helpers.new end
+-- END_IMPORT
 
 --Changeable tables. These may be changed depending on the map being played on. Designed for GTA_Badlands.
-carEvent = false
-moneyEvent = false
-gunEvent = false
+
+-- NEW
+
+FREE_GUN_TO_DISTRIBUTE = "remington"
+FREE_CAR_TO_DISTRIBUTE = "countach"
+FREE_MONEY_TO_DISTRIBUTE = 10000
+
+GameEvents = {
+    carEvent = false,
+    moneyEvent = false,
+    gunEvent = false
+}
+
+function GameEvents:disableMoneyEvent()
+    self.moneyEvent = false
+end
+
+function GameEvents:enableMoneyEvent()
+    self.moneyEvent = true
+end
+
+function GameEvents:disableGunEvent()
+    self.gunEvent = false
+end
+
+function GameEvents:enableGunEvent()
+    self.gunEvent = true
+end
+
+function GameEvents:disableCarEvent()
+    self.carEvents = false
+end
+
+function GameEvents:enableCarEvent()
+    self.carEvents = true
+end
+
+function GameEvents:new(o)
+    return new(o)
+end
+
+-- OLD
+
 freeGun = "remington"
 freeCar = "countach"
 freeMoney = 10000

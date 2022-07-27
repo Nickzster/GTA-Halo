@@ -90,9 +90,49 @@ function Spawn(PlayerIndex, commandargs) --utility function for DriveCommand
 end
 
 --Changeable tables. These may be changed depending on the map being played on. Designed for GTA_Badlands.
-carEvent = false
-moneyEvent = false
-gunEvent = false
+
+-- NEW
+
+FREE_GUN_TO_DISTRIBUTE = "remington"
+FREE_CAR_TO_DISTRIBUTE = "countach"
+FREE_MONEY_TO_DISTRIBUTE = 10000
+
+GameEvents = {
+    carEvent = false,
+    moneyEvent = false,
+    gunEvent = false
+}
+
+function GameEvents:disableMoneyEvent()
+    self.moneyEvent = false
+end
+
+function GameEvents:enableMoneyEvent()
+    self.moneyEvent = true
+end
+
+function GameEvents:disableGunEvent()
+    self.gunEvent = false
+end
+
+function GameEvents:enableGunEvent()
+    self.gunEvent = true
+end
+
+function GameEvents:disableCarEvent()
+    self.carEvents = false
+end
+
+function GameEvents:enableCarEvent()
+    self.carEvents = true
+end
+
+function GameEvents:new(o)
+    return new(o)
+end
+
+-- OLD
+
 freeGun = "remington"
 freeCar = "countach"
 freeMoney = 10000
@@ -273,6 +313,13 @@ waitingToReward = 0
 needToResetGame = false
 --end of dynamic tables
 --end of Startup stuff
+
+function new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 
 function AlertServer(PlayerIndex, message)
 	if PlayerIndex ~= nil then
@@ -1042,23 +1089,6 @@ function niceMoneyDisplay(bucksToDisplay)
 	return format_num(bucksToDisplay, 2, "$")
 end
 
-
-function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
-	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
-			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
-				Spawn(PlayerIndex, commandargs) --spawn it
-			else --otherwise, let them know that they don't own it.
-				rprint(PlayerIndex, "You do not own this vehicle.")
-			end
-		else --otherwise, let them know that they are not at a valid garage
-			rprint(PlayerIndex, "You need to be at a valid garage location!")
-		end
-	else
-		rprint(PlayerIndex, "You already have a summoned vehicle!")
-	end
-end
-
 function copCommands(PlayerIndex, commandargs)
 	if commandargs[1] == "setwantedlevel" then
 		table.remove(commandargs,1)
@@ -1148,6 +1178,23 @@ function copCommands(PlayerIndex, commandargs)
 		execute_command("t "..PlayerIndex.." hqexit")
 	else
 		rprint(PlayerIndex, "Invalid cop command was issued!")
+	end
+end
+
+
+function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
+	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
+			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
+				Spawn(PlayerIndex, commandargs) --spawn it
+			else --otherwise, let them know that they don't own it.
+				rprint(PlayerIndex, "You do not own this vehicle.")
+			end
+		else --otherwise, let them know that they are not at a valid garage
+			rprint(PlayerIndex, "You need to be at a valid garage location!")
+		end
+	else
+		rprint(PlayerIndex, "You already have a summoned vehicle!")
 	end
 end
 
