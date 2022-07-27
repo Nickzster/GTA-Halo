@@ -7,6 +7,8 @@
 -- import core.commands.handlePayCommand end
 -- import core.commands.handleSaveCommand end
 -- import core.commands.handleBuyCommand end
+-- import core.commands.handleCopCommand end
+-- import core.commands.handleHireCopCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -29,45 +31,10 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleCopCommand(playerIndex, commandName, commandArgs) then return false end 
+			if handleHireCopCommand(playerIndex, commandName, commandArgs) then return false end
 
-			if commandargs[1] == "cop" then
-					-- local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
-					-- if tempCopStatus > 0 then
-					-- 	table.remove(commandargs,1)
-					-- 	copCommands(playerIndex, commandargs)
-					-- else
-					-- 	rprint(playerIndex, "You must be a cop to execute a cop command!")
-					-- end
-					rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
-				return false
-			elseif commandargs[1] == "hirecop" then
-					if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
-						table.remove(commandargs,1)
-						local hiredCop = tonumber(commandargs[1])
-						if player_present(hiredCop) then
-							if ActivePlayers[hiredCop]:setCopPosition(tonumber(commandargs[2])) then
-								rprint(hiredCop, "You are now a "..COPPOSITIONS[tonumber(commandargs[2])])
-								rprint(playerIndex, "You have successfully changed "..ActivePlayers[hiredCop]:getName().." to be a "..COPPOSITIONS[tonumber(commandargs[2])])
-								ActivePlayers[hiredCop]:setProfession(COPPOSITIONS[tonumber(commandargs[2])])
-								if ActivePlayers[hiredCop]:getCopPosition() == 0 then
-									rprint(playerIndex, "AUTHORITY LOST")
-									ActivePlayers[hiredCop]:setCopAuthority(0)
-								else
-									rprint(playerIndex, "AUTHORITY GAINED")
-									ActivePlayers[hiredCop]:setCopAuthority(1)
-								end
-							else
-								rprint(playerIndex, "You did not specify a valid cop rank.")
-							end
-						else
-							rprint(playerIndex, "This person is not active on the server right now.")
-						end
-					else
-						rprint(playerIndex, "You do not have permission to hire cops!")
-					end
-					rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
-					return false
-			elseif commandargs[1] == "testauthority" then
+			if commandargs[1] == "testauthority" then
 					if localPlayer:getCopAuthority() == 1 then
 						rprint(playerIndex, "You have authority.")
 					else
