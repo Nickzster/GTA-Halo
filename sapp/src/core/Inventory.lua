@@ -1,4 +1,6 @@
--- NO_IMPORTS
+-- BEGIN_IMPORT
+-- import shared.config end
+-- END_IMPORT
 
 Inventory = {
 	name = "", --string value representing players name
@@ -31,8 +33,8 @@ function Inventory:getHash()
 end
 --bucks setters + getters
 function Inventory:setBucks(bucks)
-	if tonumber(bucks) > MAXBUCKS then
-		self.bucks = MAXBUCKS
+	if tonumber(bucks) > MAX_MONEY then
+		self.bucks = MAX_MONEY
 	else
 		self.bucks = bucks
 	end
@@ -42,8 +44,8 @@ function Inventory:getBucks(bucks)
 end
 function Inventory:payBucks(bucks) --adds ONTO the amount of bucks a player has
 	local tempBalance = self.bucks + bucks
-	if tempBalance > MAXBUCKS then
-		self.bucks = MAXBUCKS
+	if tempBalance > MAX_MONEY then
+		self.bucks = MAX_MONEY
 	else
 		self.bucks = tempBalance
 	end
@@ -71,8 +73,8 @@ end
 --karma setters and getters
 function Inventory:setKarma(newKarmaValue)
 	newKarmaValue = tonumber(newKarmaValue)
-	if newKarmaValue > MAXKARMA then
-		self.karma = MAXKARMA
+	if newKarmaValue > MAX_KARMA then
+		self.karma = MAX_KARMA
 	else
 		self.karma = newKarmaValue
 	end
@@ -82,8 +84,8 @@ function Inventory:getKarma()
 end
 function Inventory:incrementKarma()
 	local incrementedKarmaValue = self.karma + 1
-	if incrementedKarmaValue > MAXKARMA then
-		self.karma = MAXKARMA
+	if incrementedKarmaValue > MAX_KARMA then
+		self.karma = MAX_KARMA
 	else
 		self.karma = incrementedKarmaValue
 	end

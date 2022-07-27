@@ -45,11 +45,11 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 						buyGun(PlayerIndex, commandargs[1])
 					elseif commandargs[1] == "ammo" then
 						if playerIsInArea(PlayerIndex, "gunstore") then
-							if tonumber(localPlayer:getBucks()) >= maxAmmoPrice then--if the player has enough money
+							if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
 								--then allow the purchase
-								localPlayer:deductBucks(maxAmmoPrice)
+								localPlayer:deductBucks(MAX_AMMO_PRICE)
 								execute_command("ammo "..PlayerIndex.." 999 0")
-								rprint(PlayerIndex, "Purchase of max ammo for "..niceMoneyDisplay(maxAmmoPrice).." was successful.")
+								rprint(PlayerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
 							else
 								--otherwise tell them they do not have enough
 								rprint(PlayerIndex, "You do not have enough money to buy ammo.")
@@ -230,15 +230,15 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 			elseif commandargs[1] == "loadout" then
 				if playerIsInArea(PlayerIndex, "gunstore") then
 					local ownedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
-					if tonumber(ActivePlayers[PlayerIndex]:getBucks()) >= loadoutChangePrice then
+					if tonumber(ActivePlayers[PlayerIndex]:getBucks()) >= LOADOUT_CHANGE_PRICE then
 						if ownedWeapons[commandargs[2]] == nil  and ownedWeapons[commandargs[3]] == nil then
 							rprint(PlayerIndex, "Loadout command was not issued correctly.")
 							rprint(PlayerIndex, "You specified one or more weapons you do not own.")
 						else
-							localPlayer:deductBucks(loadoutChangePrice)
+							localPlayer:deductBucks(LOADOUT_CHANGE_PRICE)
 							localPlayer:setLoadoutPrimary(commandargs[2])
 							localPlayer:setLoadoutSecondary(commandargs[3])
-							rprint(PlayerIndex, "You have successfully changed your loadout for "..niceMoneyDisplay(loadoutChangePrice))
+							rprint(PlayerIndex, "You have successfully changed your loadout for "..niceMoneyDisplay(LOADOUT_CHANGE_PRICE))
 							rprint(PlayerIndex, "Primary: "..localPlayer:getPrimaryWeapon()..", Secondary: "..localPlayer:getSecondaryWeapon())
 						end
 					else

@@ -1,11 +1,8 @@
 --BEGIN_IMPORT
 -- import helpers.new end
 -- import core.GameEvent end
+-- import shared.config end
 -- END_IMPORT
-
-
--- NEW
-
 
 
 -- Table of GameEvents, accessible by server.
@@ -22,10 +19,6 @@ end
 
 -- OLD
 
-MAXBUCKS = 9999999
-MAXKARMA = 2.0
-maxAmmoPrice = 750
-loadoutChangePrice = 500
 ClaimedRewards = {}
 LOCATIONS = {
     ["dealership_1"] = "the dealership in Camel.",
