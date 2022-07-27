@@ -5,6 +5,7 @@
 -- import core.commands.driveCommand end
 -- import core.commands.parkCommand end
 -- import helpers.serverUtils end
+-- import shared.config end
 -- END_IMPORT
 
 function CommandHandler (PlayerIndex,Command,Environment,Password)
@@ -117,16 +118,16 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					if typeOfEvent ~= nil then
 						if typeOfEvent == "gun" and gunEvent ~= false then
 							if playerIsInArea(PlayerIndex, "gunstore") then
-								local gunToGive = spawn_object("weapon", WEAPONS[freeGun])
+								local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
 								assign_weapon(gunToGive, PlayerIndex)
-								rprint(PlayerIndex, "You have successfully redeemed a "..freeGun.."!")
+								rprint(PlayerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
 							else
 								rprint(PlayerIndex, "You must be at a gun store to redeem this item.")
 							end
 						elseif typeOfEvent == "money" and moneyEvent ~= false then
 							if ClaimedRewards[get_var(PlayerIndex, "$hash")] == nil then
 								rprint(PlayerIndex, "Congratulations. You just earned free money!")
-								ActivePlayers[PlayerIndex]:payBucks(freeMoney)
+								ActivePlayers[PlayerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
 								ClaimedRewards[get_var(PlayerIndex, "$hash")] = get_var(PlayerIndex, "$hash")
 							else
 								rprint(PlayerIndex, "You have already claimed this reward!")
@@ -134,10 +135,10 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 						elseif typeOfEvent == "car" and carEvent ~= false then
 							if playerIsInArea(PlayerIndex, "dealership") then
 								local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								if updatedVehicles[freeCar] == nil then
-									updatedVehicles[freeCar] = freeCar
+								if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
+									updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
 									ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles
-									rprint(PlayerIndex, "You have successfully redeemed a "..freeCar.."!")
+									rprint(PlayerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
 								else
 									rprint(PlayerIndex, "You already own this vehicle!")
 								end

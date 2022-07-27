@@ -1,35 +1,12 @@
 --BEGIN_IMPORT
 -- import helpers.new end
+-- import core.GameEvent end
 -- END_IMPORT
 
---Changeable tables. These may be changed depending on the map being played on. Designed for GTA_Badlands.
 
 -- NEW
 
-FREE_GUN_TO_DISTRIBUTE = "remington"
-FREE_CAR_TO_DISTRIBUTE = "countach"
-FREE_MONEY_TO_DISTRIBUTE = 10000
 
--- GameEvent object, representing a single event.
-
-GameEvent = {
-    active=false,
-    item=""
-}
-
-function GameEvent:setActive(isActive)
-    self.active = isActive
-    return self
-end
-
-function GameEvent:setItem(itemToSet)
-    self.item = itemToSet
-    return self
-end
-
-function GameEvent:new(o)
-    return new(self, o)
-end
 
 -- Table of GameEvents, accessible by server.
 

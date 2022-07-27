@@ -1,6 +1,27 @@
 api_version="1.10.1.0"
 
 
+-- GameEvent object, representing a single event.
+
+GameEvent = {
+    active=false,
+    item=""
+}
+
+function GameEvent:setActive(isActive)
+    self.active = isActive
+    return self
+end
+
+function GameEvent:setItem(itemToSet)
+    self.item = itemToSet
+    return self
+end
+
+function GameEvent:new(o)
+    return new(self, o)
+end
+
 function new(self, o)
     o = o or {}
     setmetatable(o, self)
@@ -96,34 +117,10 @@ function Spawn(PlayerIndex, commandargs) --utility function for DriveCommand
 	end
 end
 
---Changeable tables. These may be changed depending on the map being played on. Designed for GTA_Badlands.
 
 -- NEW
 
-FREE_GUN_TO_DISTRIBUTE = "remington"
-FREE_CAR_TO_DISTRIBUTE = "countach"
-FREE_MONEY_TO_DISTRIBUTE = 10000
 
--- GameEvent object, representing a single event.
-
-GameEvent = {
-    active=false,
-    item=""
-}
-
-function GameEvent:setActive(isActive)
-    self.active = isActive
-    return self
-end
-
-function GameEvent:setItem(itemToSet)
-    self.item = itemToSet
-    return self
-end
-
-function GameEvent:new(o)
-    return new(self, o)
-end
 
 -- Table of GameEvents, accessible by server.
 
@@ -502,6 +499,10 @@ function Inventory:new(o)
 	return o
 end
 
+FREE_GUN_TO_DISTRIBUTE = "remington"
+FREE_CAR_TO_DISTRIBUTE = "countach"
+FREE_MONEY_TO_DISTRIBUTE = 10000
+
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
 	print("\nWriting"..get_var(PlayerIndex, "$name").."'s data to a file.")
 	local hashNumber = get_var(PlayerIndex, "$hash")
@@ -788,16 +789,16 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 					if typeOfEvent ~= nil then
 						if typeOfEvent == "gun" and gunEvent ~= false then
 							if playerIsInArea(PlayerIndex, "gunstore") then
-								local gunToGive = spawn_object("weapon", WEAPONS[freeGun])
+								local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
 								assign_weapon(gunToGive, PlayerIndex)
-								rprint(PlayerIndex, "You have successfully redeemed a "..freeGun.."!")
+								rprint(PlayerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
 							else
 								rprint(PlayerIndex, "You must be at a gun store to redeem this item.")
 							end
 						elseif typeOfEvent == "money" and moneyEvent ~= false then
 							if ClaimedRewards[get_var(PlayerIndex, "$hash")] == nil then
 								rprint(PlayerIndex, "Congratulations. You just earned free money!")
-								ActivePlayers[PlayerIndex]:payBucks(freeMoney)
+								ActivePlayers[PlayerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
 								ClaimedRewards[get_var(PlayerIndex, "$hash")] = get_var(PlayerIndex, "$hash")
 							else
 								rprint(PlayerIndex, "You have already claimed this reward!")
@@ -805,10 +806,10 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 						elseif typeOfEvent == "car" and carEvent ~= false then
 							if playerIsInArea(PlayerIndex, "dealership") then
 								local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								if updatedVehicles[freeCar] == nil then
-									updatedVehicles[freeCar] = freeCar
+								if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
+									updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
 									ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles
-									rprint(PlayerIndex, "You have successfully redeemed a "..freeCar.."!")
+									rprint(PlayerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
 								else
 									rprint(PlayerIndex, "You already own this vehicle!")
 								end
@@ -946,40 +947,6 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 
 end
 
-function buyVehicle(PlayerIndex, vehicleToBuy)
-	if playerIsInArea(PlayerIndex, "dealership") then
-		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
-			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
-				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
-					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
-						--then they can buy it
-							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-							if updatedVehicles[vehicleToBuy] == nil then
-								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								updatedVehicles[vehicleToBuy] = vehicleToBuy
-								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
-								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
-								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
-							else
-								rprint(PlayerIndex, "You already own this vehicle!")
-							end
-					else
-						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
-					end
-				else
-					rprint(PlayerIndex, "This vehicle is not for sale.")
-				end
-			else
-				rprint(PlayerIndex, "An invalid vehicle name was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
-	end
-end
-
 
 function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
 	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
@@ -995,101 +962,6 @@ function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle
 	else
 		rprint(PlayerIndex, "You already have a summoned vehicle!")
 	end
-end
-
-function buyGun(PlayerIndex, gunToBuy)
-	if playerIsInArea(PlayerIndex, "gunstore") then
-		if gunToBuy ~= nil then
-			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
-					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
-					if updatedWeapons[gunToBuy] == nil then
-						updatedWeapons[gunToBuy] = gunToBuy
-						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
-						rprint(PlayerIndex, "You now own this weapon for loadouts.")
-					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
-					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
-				else
-					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
-				end
-			else
-				rprint(PlayerIndex, "An invalid gun was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
-	end
-end
-------------------------------------------------------------
--- from sam_lie
--- Compatible with Lua 5.0 and 5.1.
--- Disclaimer : use at own risk especially for hedge fund reports :-)
---http://lua-users.org/wiki/FormattingNumbers
----============================================================
--- add comma to separate thousands
--- 
-function comma_value(amount)
-	local formatted = amount
-	while true do  
-	  formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-	  if (k==0) then
-		break
-	  end
-	end
-	return formatted
-end
-  -- rounds a number to the nearest decimal places
-function round(val, decimal)
-	if (decimal) then
-	  return math.floor( (val * 10^decimal) + 0.5) / (10^decimal)
-	else
-	  return math.floor(val+0.5)
-	end
-end
-  -- given a numeric value formats output with comma to separate thousands
-  -- and rounded to given decimal places
-function format_num(amount, decimal, prefix, neg_prefix)
-	local str_amount,  formatted, famount, remain
-  
-	decimal = decimal or 2  -- default 2 decimal places
-	neg_prefix = neg_prefix or "-" -- default negative sign
-  
-	famount = math.abs(round(amount,decimal))
-	famount = math.floor(famount)
-  
-	remain = round(math.abs(amount) - famount, decimal)
-  
-		  -- comma to separate the thousands
-	formatted = comma_value(famount)
-  
-		  -- attach the decimal portion
-	if (decimal > 0) then
-	  remain = string.sub(tostring(remain),3)
-	  formatted = formatted .. "." .. remain ..
-				  string.rep("0", decimal - string.len(remain))
-	end
-  
-		  -- attach prefix string e.g '$' 
-	formatted = (prefix or "") .. formatted 
-  
-		  -- if value is negative then format accordingly
-	if (amount<0) then
-	  if (neg_prefix=="()") then
-		formatted = "("..formatted ..")"
-	  else
-		formatted = neg_prefix .. formatted 
-	  end
-	end
-  
-	return formatted
-end
-function niceMoneyDisplay(bucksToDisplay)
-	bucksToDisplay = tonumber(bucksToDisplay)
-	return format_num(bucksToDisplay, 2, "$")
 end
 
 function copCommands(PlayerIndex, commandargs)
@@ -1181,6 +1053,135 @@ function copCommands(PlayerIndex, commandargs)
 		execute_command("t "..PlayerIndex.." hqexit")
 	else
 		rprint(PlayerIndex, "Invalid cop command was issued!")
+	end
+end
+------------------------------------------------------------
+-- from sam_lie
+-- Compatible with Lua 5.0 and 5.1.
+-- Disclaimer : use at own risk especially for hedge fund reports :-)
+--http://lua-users.org/wiki/FormattingNumbers
+---============================================================
+-- add comma to separate thousands
+-- 
+function comma_value(amount)
+	local formatted = amount
+	while true do  
+	  formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
+	  if (k==0) then
+		break
+	  end
+	end
+	return formatted
+end
+  -- rounds a number to the nearest decimal places
+function round(val, decimal)
+	if (decimal) then
+	  return math.floor( (val * 10^decimal) + 0.5) / (10^decimal)
+	else
+	  return math.floor(val+0.5)
+	end
+end
+  -- given a numeric value formats output with comma to separate thousands
+  -- and rounded to given decimal places
+function format_num(amount, decimal, prefix, neg_prefix)
+	local str_amount,  formatted, famount, remain
+  
+	decimal = decimal or 2  -- default 2 decimal places
+	neg_prefix = neg_prefix or "-" -- default negative sign
+  
+	famount = math.abs(round(amount,decimal))
+	famount = math.floor(famount)
+  
+	remain = round(math.abs(amount) - famount, decimal)
+  
+		  -- comma to separate the thousands
+	formatted = comma_value(famount)
+  
+		  -- attach the decimal portion
+	if (decimal > 0) then
+	  remain = string.sub(tostring(remain),3)
+	  formatted = formatted .. "." .. remain ..
+				  string.rep("0", decimal - string.len(remain))
+	end
+  
+		  -- attach prefix string e.g '$' 
+	formatted = (prefix or "") .. formatted 
+  
+		  -- if value is negative then format accordingly
+	if (amount<0) then
+	  if (neg_prefix=="()") then
+		formatted = "("..formatted ..")"
+	  else
+		formatted = neg_prefix .. formatted 
+	  end
+	end
+  
+	return formatted
+end
+function niceMoneyDisplay(bucksToDisplay)
+	bucksToDisplay = tonumber(bucksToDisplay)
+	return format_num(bucksToDisplay, 2, "$")
+end
+
+function buyVehicle(PlayerIndex, vehicleToBuy)
+	if playerIsInArea(PlayerIndex, "dealership") then
+		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
+			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
+				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
+					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
+						--then they can buy it
+							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+							if updatedVehicles[vehicleToBuy] == nil then
+								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+								updatedVehicles[vehicleToBuy] = vehicleToBuy
+								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
+								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
+								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
+							else
+								rprint(PlayerIndex, "You already own this vehicle!")
+							end
+					else
+						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
+					end
+				else
+					rprint(PlayerIndex, "This vehicle is not for sale.")
+				end
+			else
+				rprint(PlayerIndex, "An invalid vehicle name was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
+	end
+end
+
+function buyGun(PlayerIndex, gunToBuy)
+	if playerIsInArea(PlayerIndex, "gunstore") then
+		if gunToBuy ~= nil then
+			if WEAPONS[gunToBuy] ~= nil then
+				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
+					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
+					if updatedWeapons[gunToBuy] == nil then
+						updatedWeapons[gunToBuy] = gunToBuy
+						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
+						rprint(PlayerIndex, "You now own this weapon for loadouts.")
+					end
+					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
+					giveGun(gunToBuy, PlayerIndex)
+					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+				else
+					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
+				end
+			else
+				rprint(PlayerIndex, "An invalid gun was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
 	end
 end
 

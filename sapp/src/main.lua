@@ -1,5 +1,5 @@
 --BEGIN_IMPORT
--- import config.globals end
+-- import shared.globals end
 -- import core.Inventory end
 -- import helpers.moneyDisplay end
 -- import core.LocalDB end
@@ -7,6 +7,8 @@
 -- import helpers.gameUtils end
 -- import core.commands.CommandHandler end
 -- import helpers.new end
+-- import core.GameEvent end
+-- import shared.config end
 --END_IMPORT
 
 

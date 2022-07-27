@@ -1,6 +1,6 @@
 -- BEGIN_IMPORT
 -- import helpers.gameUtils end
--- import config.globals end
+-- import shared.globals end
 -- END_IMPORT
 
 function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.

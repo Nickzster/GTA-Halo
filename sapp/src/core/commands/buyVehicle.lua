@@ -1,6 +1,6 @@
 -- BEGIN_IMPORT
 -- import helpers.gameUtils end
--- import config.globals end
+-- import shared.globals end
 -- END_IMPORT
 
 function buyVehicle(PlayerIndex, vehicleToBuy)
