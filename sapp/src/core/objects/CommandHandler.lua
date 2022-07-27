@@ -38,36 +38,9 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleShowIDCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleDropCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleRedeemCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleActivateEventCommand(playerIndex, commandName, commandArgs) then return false end
 
-			if commandargs[1] == "activateevent" then
-				if adminLevel >= 4 then
-					table.remove(commandargs,1)
-					local typeOfEvent = commandargs[1]
-					if typeOfEvent ~= nil then
-						if typeOfEvent == "gun" and gunEvent == false then
-							say_all("A GUN Event has been activated.")
-							say_all("Head to the gun store to redeem a free gun!")
-							gunEvent = true
-						elseif typeOfEvent == "car" and carEvent == false then
-							say_all("A CAR Event has been activated.")
-							say_all("Head to the dealership to redeem a free car!")
-							carEvent = true
-						elseif typeOfEvent == "money" and moneyEvent == false then
-							say_all("A MONEY event has been activated.")
-							say_all ("Type in /redeem money ANYWHERE to get free money!")
-							moneyEvent = true
-						else
-							rprint(playerIndex, "You did not specify a valid event! OR")
-							rprint(playerIndex, "That event has already been activated!")
-						end
-					else
-						rprint(playerIndex, "You did not specify the type of event to activate!")
-					end		
-				else
-					rprint(playerIndex, "You cannot activate a redemption event.")
-				end
-				return false
-			elseif commandargs[1] == "check" then
+			if commandargs[1] == "check" then
 				table.remove(commandargs,1)
 				if #commandargs == 0 then
 					rprint(playerIndex, "You need to specify what you want to check!")
