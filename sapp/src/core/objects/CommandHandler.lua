@@ -1,11 +1,12 @@
 -- BEGIN_IMPORT
 -- import core.commands.helpers.buyGun end
 -- import core.commands.helpers.buyVehicle end
--- import core.commands.copCommands end
+-- import core.commands.helpers.copCommands end
 -- import core.commands.handleDriveCommand end
 -- import core.commands.handleParkCommand end
 -- import core.commands.handlePayCommand end
 -- import core.commands.handleSaveCommand end
+-- import core.commands.handleBuyCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -27,32 +28,9 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
 			if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
 
-			if commandargs[1] == "buy" then --/buy <objectToBuy> <objectName> -> allows a player to buy something.
-					table.remove(commandargs, 1)
-					if VEHICLEPRICES[commandargs[1]] ~= nil then
-						buyVehicle(playerIndex, commandargs[1])
-					elseif WEAPONPRICES[commandargs[1]] ~= nil then
-						buyGun(playerIndex, commandargs[1])
-					elseif commandargs[1] == "ammo" then
-						if playerIsInArea(playerIndex, "gunstore") then
-							if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
-								--then allow the purchase
-								localPlayer:deductBucks(MAX_AMMO_PRICE)
-								execute_command("ammo "..playerIndex.." 999 0")
-								rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
-							else
-								--otherwise tell them they do not have enough
-								rprint(playerIndex, "You do not have enough money to buy ammo.")
-							end
-						else
-							rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
-						end
-					else
-						rprint(playerIndex, "Invalid object specified.")
-					end
-					return false
-			elseif commandargs[1] == "cop" then
+			if commandargs[1] == "cop" then
 					-- local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
 					-- if tempCopStatus > 0 then
 					-- 	table.remove(commandargs,1)

@@ -106,10 +106,32 @@ COMMAND_NAMES = {
     ["drive"] = "drive",
     ["park"] = "park",
     ["pay"] = "pay",
-    ["save"] = "save"
+    ["save"] = "save",
+    ["buy"] = "buy"
 }
 
 
+
+-- GameEvent object, representing a single event.
+
+GameEvent = {
+    active=false,
+    item=""
+}
+
+function GameEvent:setActive(isActive)
+    self.active = isActive
+    return self
+end
+
+function GameEvent:setItem(itemToSet)
+    self.item = itemToSet
+    return self
+end
+
+function GameEvent:new(o)
+    return new(self, o)
+end
 
 function FindBipedTag(TagName)
     local tag_array = read_dword(0x40440000)
@@ -203,27 +225,6 @@ end
 function buildLocationString(locationType, locationName, isEntering) 
 	if isEntering ~= nil then return "You have entered a(n) " .. locationType .. " in " .. locationName .. "." end
 	return "You have exited a(n) " .. locationType .. " in " .. locationName .. "."
-end
-
--- GameEvent object, representing a single event.
-
-GameEvent = {
-    active=false,
-    item=""
-}
-
-function GameEvent:setActive(isActive)
-    self.active = isActive
-    return self
-end
-
-function GameEvent:setItem(itemToSet)
-    self.item = itemToSet
-    return self
-end
-
-function GameEvent:new(o)
-    return new(self, o)
 end
 
 
@@ -585,6 +586,68 @@ function validateCommand(commandNameToCheck, expectedCommandName)
     return commandNameToCheck == COMMAND_NAMES[expectedCommandName]
 end
 
+function buyGun(PlayerIndex, gunToBuy)
+	if playerIsInArea(PlayerIndex, "gunstore") then
+		if gunToBuy ~= nil then
+			if WEAPONS[gunToBuy] ~= nil then
+				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
+					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
+					if updatedWeapons[gunToBuy] == nil then
+						updatedWeapons[gunToBuy] = gunToBuy
+						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
+						rprint(PlayerIndex, "You now own this weapon for loadouts.")
+					end
+					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
+					giveGun(gunToBuy, PlayerIndex)
+					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+				else
+					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
+				end
+			else
+				rprint(PlayerIndex, "An invalid gun was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
+	end
+end
+
+function buyVehicle(PlayerIndex, vehicleToBuy)
+	if playerIsInArea(PlayerIndex, "dealership") then
+		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
+			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
+				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
+					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
+						--then they can buy it
+							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+							if updatedVehicles[vehicleToBuy] == nil then
+								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+								updatedVehicles[vehicleToBuy] = vehicleToBuy
+								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
+								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
+								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
+							else
+								rprint(PlayerIndex, "You already own this vehicle!")
+							end
+					else
+						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
+					end
+				else
+					rprint(PlayerIndex, "This vehicle is not for sale.")
+				end
+			else
+				rprint(PlayerIndex, "An invalid vehicle name was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
+	end
+end
+
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
 	print("\nWriting"..get_var(PlayerIndex, "$name").."'s data to a file.")
 	local hashNumber = get_var(PlayerIndex, "$hash")
@@ -763,146 +826,150 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	end
 end
 
-function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
-    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
-    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
-        local tag_array = read_dword(0x40440000)
-        for i=0,read_word(0x4044000C)-1 do
-            local tag = tag_array + i * 0x20
-            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
-                local tag_data = read_dword(tag + 0x14)
-                local mp_info = read_dword(tag_data + 0x164 + 4)
-                for j=0,read_dword(tag_data + 0x164)-1 do
-                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
-                end
+function handleBuyCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "buy") then return false end
+
+    local localPlayer = ActivePlayers[playerIndex]
+
+    if VEHICLEPRICES[commandArgs[1]] ~= nil then
+        buyVehicle(playerIndex, commandArgs[1])
+    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
+        buyGun(playerIndex, commandArgs[1])
+    elseif commandArgs[1] == "ammo" then
+        if playerIsInArea(playerIndex, "gunstore") then
+            if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
+                --then allow the purchase
+                localPlayer:deductBucks(MAX_AMMO_PRICE)
+                execute_command("ammo "..playerIndex.." 999 0")
+                rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
+            else
+                --otherwise tell them they do not have enough
+                rprint(playerIndex, "You do not have enough money to buy ammo.")
             end
+        else
+            rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
         end
+    else
+        rprint(playerIndex, "Invalid object specified.")
     end
-    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
-    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
-        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
-            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
-                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
-            end
-        end
-        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
-    end
+
     return true
 end
 
+function handleSaveCommand(playerIndex, commandName, commandArgs) 
+    if not validateCommand(commandName, "save") then return false end
 
+    writePlayerData(playerIndex)
 
-function buyGun(PlayerIndex, gunToBuy)
-	if playerIsInArea(PlayerIndex, "gunstore") then
-		if gunToBuy ~= nil then
-			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
-					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
-					if updatedWeapons[gunToBuy] == nil then
-						updatedWeapons[gunToBuy] = gunToBuy
-						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
-						rprint(PlayerIndex, "You now own this weapon for loadouts.")
-					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
-					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+    return true
+end
+
+function handlePayCommand(playerIndex, commandName, commandArgs)
+
+    if not validateCommand(commandName, 'pay') then return false end
+
+    local isAdmin = playerIsAdmin(playerIndex)
+
+    if not isAdmin then rprint(playerIndex, "You do not have sufficent admin privileges to execute this command."); return true end
+    
+    local playerToPay = tonumber(commandArgs[1])
+    local amountToPay = tonumber(commandArgs[2])
+    payAPlayer(playerToPay, amountToPay)
+
+    return true
+
+end
+
+function copCommands(PlayerIndex, commandargs)
+	if commandargs[1] == "setwantedlevel" then
+		table.remove(commandargs,1)
+		WantedPlayer = tonumber(commandargs[1])
+		if WantedPlayer ~= nil then
+			table.remove(commandargs,1)
+			local tempWantedLevel = tonumber(commandargs[1])
+			if tempWantedLevel ~= nil then
+				ActivePlayers[WantedPlayer].setWantedLevel(ActivePlayers[WantedPlayer], tempWantedLevel)
+				if tempWantedLevel > 0 then
+					AlertServer(nil, "A wanted level was issued by the police! Be on the lookout for someone suspicious!")
+					AlertServer(WantedPlayer, "You now have a wanted level of "..tempWantedLevel)
 				else
-					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
+					AlertServer(nil, "A wanted level has been removed. It is now a little safer...")
+					AlertServer(WantedPlayer, "Your wanted level has been removed.")
 				end
 			else
-				rprint(PlayerIndex, "An invalid gun was specified!")
+				rprint(PlayerIndex, "Invalid wanted level was specified!")
 			end
 		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+			rprint(PlayerIndex, "Invalid player was specified!")
 		end
-	else
-		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
-	end
-end
-------------------------------------------------------------
--- from sam_lie
--- Compatible with Lua 5.0 and 5.1.
--- Disclaimer : use at own risk especially for hedge fund reports :-)
---http://lua-users.org/wiki/FormattingNumbers
----============================================================
--- add comma to separate thousands
--- 
-function comma_value(amount)
-	local formatted = amount
-	while true do  
-	  formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-	  if (k==0) then
-		break
-	  end
-	end
-	return formatted
-end
-  -- rounds a number to the nearest decimal places
-function round(val, decimal)
-	if (decimal) then
-	  return math.floor( (val * 10^decimal) + 0.5) / (10^decimal)
-	else
-	  return math.floor(val+0.5)
-	end
-end
-  -- given a numeric value formats output with comma to separate thousands
-  -- and rounded to given decimal places
-function format_num(amount, decimal, prefix, neg_prefix)
-	local str_amount,  formatted, famount, remain
-  
-	decimal = decimal or 2  -- default 2 decimal places
-	neg_prefix = neg_prefix or "-" -- default negative sign
-  
-	famount = math.abs(round(amount,decimal))
-	famount = math.floor(famount)
-  
-	remain = round(math.abs(amount) - famount, decimal)
-  
-		  -- comma to separate the thousands
-	formatted = comma_value(famount)
-  
-		  -- attach the decimal portion
-	if (decimal > 0) then
-	  remain = string.sub(tostring(remain),3)
-	  formatted = formatted .. "." .. remain ..
-				  string.rep("0", decimal - string.len(remain))
-	end
-  
-		  -- attach prefix string e.g '$' 
-	formatted = (prefix or "") .. formatted 
-  
-		  -- if value is negative then format accordingly
-	if (amount<0) then
-	  if (neg_prefix=="()") then
-		formatted = "("..formatted ..")"
-	  else
-		formatted = neg_prefix .. formatted 
-	  end
-	end
-  
-	return formatted
-end
-function niceMoneyDisplay(bucksToDisplay)
-	bucksToDisplay = tonumber(bucksToDisplay)
-	return format_num(bucksToDisplay, 2, "$")
-end
-
-function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
-	
-	if not validateCommand(commandName, 'park') then return false end
-
-	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
-		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
-			execute_command("vdel " .. playerIndex) --then park their vehicle
-			PlayerSpawnedVehicles[playerIndex] = 0
+	elseif commandargs[1] == "detain" then
+		table.remove(commandargs,1)
+		local PlayerToDetain = tonumber(commandargs[1])
+		if PlayerToDetain ~= nil then
+			distance = getDistance(PlayerIndex, PlayerToDetain)
+				if distance < 1 then
+					execute_command("s "..PlayerToDetain.." 0")
+					AlertServer(PlayerToDetain, "You have been detained!")
+				else
+					rprint(PlayerIndex, "You are too far away to do that!")
+				end
 		else
-			rprint(playerIndex, "You need to be at a garage in order to park your car!")
+			rprint(PlayerIndex, "Invalid player specified!")
 		end
-	else --otherwise, let them know that they need to exit the vehicle to park it.
-		rprint(playerIndex, "You need to exit the vehicle first!")
+	elseif commandargs[1] == "undetain" then
+		table.remove(commandargs,1)
+		PlayerToUndetain = tonumber(commandargs[1])
+		execute_command("s "..PlayerToUndetain.." 1")
+		AlertServer(PlayerToDetain, "You have been undetained!")
+	elseif commandargs[1] == "confiscate" then
+		table.remove(commandargs,1)
+		local PlayerToConfiscate = tonumber(commandargs[1])
+		if getDistance(PlayerIndex, PlayerToConfiscate) < 1 then
+			execute_command("wdel "..PlayerToConfiscate.." 5")
+		else
+			rprint(PlayerIndex, "The player is too far away for you to do that!")
+		end
+	elseif commandargs[1] == "fine" then
+		-- table.remove(commandargs,1)
+		-- local PlayerToFine = commandargs[1]
+		-- if PlayerToFine ~= nil then
+		-- 	PlayerToFine = tonumber(PlayerToFine)
+		-- 	table.remove(commandargs,1)
+		-- 	local amountToFine = commandargs[1]
+		-- 	if amountToFine ~= nil then
+		-- 		amountToFine = tonumber(amountToFine)
+		-- 		local bankBalance = tonumber(ActivePlayers[PlayerToFine].getBucks(ActivePlayers[PlayerToFine]))
+		-- 		if bankBalance ~= nil then
+		-- 			if amountToFine < bankBalance then --if the player has enough money in their bank
+		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine) --then take the fine out of their bank
+		-- 			else --otherwise, take it out of their bank and cash
+		-- 				local cashDifference = amountToFine - bankBalance
+		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine)
+		-- 				ActivePlayers[PlayerToFine].deductCash(ActivePlayers[PlayerToFine], cashDifference)
+		-- 			end
+		-- 		else
+		-- 			rprint(PlayerIndex, "Invalid fine amount specified!")
+		-- 		end
+		-- 	else
+		-- 		rprint(PlayerIndex, "Invalid fine amount specified")
+		-- 	end
+		-- else
+		-- 	rprint(PlayerIndex, "Invalid player index specified!")
+		-- end
+		rprint(PlayerIndex, "Work in progress")
+	elseif commandargs[1] == "enterhq" then
+		if playerIsInArea(PlayerIndex, "hqenter") then
+			execute_command("t "..PlayerIndex.." hqentrance")
+		else
+			rprint(PlayerIndex, "You must be at HQ entrance to enter HQ!")
+		end
+	elseif commandargs[1] == "enterhqmagically" then
+		execute_command("t "..PlayerIndex.." hqentrance")
+	elseif commandargs[1] == "exithq" then
+		execute_command("t "..PlayerIndex.." hqexit")
+	else
+		rprint(PlayerIndex, "Invalid cop command was issued!")
 	end
-
-	return true
 end
 
 function CommandHandler (playerIndex,Command,Environment,Password)
@@ -921,32 +988,9 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
 			if handlePayCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleSaveCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
 
-			if commandargs[1] == "buy" then --/buy <objectToBuy> <objectName> -> allows a player to buy something.
-					table.remove(commandargs, 1)
-					if VEHICLEPRICES[commandargs[1]] ~= nil then
-						buyVehicle(playerIndex, commandargs[1])
-					elseif WEAPONPRICES[commandargs[1]] ~= nil then
-						buyGun(playerIndex, commandargs[1])
-					elseif commandargs[1] == "ammo" then
-						if playerIsInArea(playerIndex, "gunstore") then
-							if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
-								--then allow the purchase
-								localPlayer:deductBucks(MAX_AMMO_PRICE)
-								execute_command("ammo "..playerIndex.." 999 0")
-								rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
-							else
-								--otherwise tell them they do not have enough
-								rprint(playerIndex, "You do not have enough money to buy ammo.")
-							end
-						else
-							rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
-						end
-					else
-						rprint(playerIndex, "Invalid object specified.")
-					end
-					return false
-			elseif commandargs[1] == "cop" then
+			if commandargs[1] == "cop" then
 					-- local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
 					-- if tempCopStatus > 0 then
 					-- 	table.remove(commandargs,1)
@@ -1161,96 +1205,132 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 
 end
 
-function copCommands(PlayerIndex, commandargs)
-	if commandargs[1] == "setwantedlevel" then
-		table.remove(commandargs,1)
-		WantedPlayer = tonumber(commandargs[1])
-		if WantedPlayer ~= nil then
-			table.remove(commandargs,1)
-			local tempWantedLevel = tonumber(commandargs[1])
-			if tempWantedLevel ~= nil then
-				ActivePlayers[WantedPlayer].setWantedLevel(ActivePlayers[WantedPlayer], tempWantedLevel)
-				if tempWantedLevel > 0 then
-					AlertServer(nil, "A wanted level was issued by the police! Be on the lookout for someone suspicious!")
-					AlertServer(WantedPlayer, "You now have a wanted level of "..tempWantedLevel)
-				else
-					AlertServer(nil, "A wanted level has been removed. It is now a little safer...")
-					AlertServer(WantedPlayer, "Your wanted level has been removed.")
-				end
-			else
-				rprint(PlayerIndex, "Invalid wanted level was specified!")
-			end
+function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
+    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
+    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
+        local tag_array = read_dword(0x40440000)
+        for i=0,read_word(0x4044000C)-1 do
+            local tag = tag_array + i * 0x20
+            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
+                local tag_data = read_dword(tag + 0x14)
+                local mp_info = read_dword(tag_data + 0x164 + 4)
+                for j=0,read_dword(tag_data + 0x164)-1 do
+                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
+                end
+            end
+        end
+    end
+    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
+    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
+        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
+            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
+                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
+            end
+        end
+        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
+    end
+    return true
+end
+
+
+
+function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
+	
+	if not validateCommand(commandName, 'park') then return false end
+
+	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
+		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
+			execute_command("vdel " .. playerIndex) --then park their vehicle
+			PlayerSpawnedVehicles[playerIndex] = 0
 		else
-			rprint(PlayerIndex, "Invalid player was specified!")
+			rprint(playerIndex, "You need to be at a garage in order to park your car!")
 		end
-	elseif commandargs[1] == "detain" then
-		table.remove(commandargs,1)
-		local PlayerToDetain = tonumber(commandargs[1])
-		if PlayerToDetain ~= nil then
-			distance = getDistance(PlayerIndex, PlayerToDetain)
-				if distance < 1 then
-					execute_command("s "..PlayerToDetain.." 0")
-					AlertServer(PlayerToDetain, "You have been detained!")
-				else
-					rprint(PlayerIndex, "You are too far away to do that!")
-				end
-		else
-			rprint(PlayerIndex, "Invalid player specified!")
-		end
-	elseif commandargs[1] == "undetain" then
-		table.remove(commandargs,1)
-		PlayerToUndetain = tonumber(commandargs[1])
-		execute_command("s "..PlayerToUndetain.." 1")
-		AlertServer(PlayerToDetain, "You have been undetained!")
-	elseif commandargs[1] == "confiscate" then
-		table.remove(commandargs,1)
-		local PlayerToConfiscate = tonumber(commandargs[1])
-		if getDistance(PlayerIndex, PlayerToConfiscate) < 1 then
-			execute_command("wdel "..PlayerToConfiscate.." 5")
-		else
-			rprint(PlayerIndex, "The player is too far away for you to do that!")
-		end
-	elseif commandargs[1] == "fine" then
-		-- table.remove(commandargs,1)
-		-- local PlayerToFine = commandargs[1]
-		-- if PlayerToFine ~= nil then
-		-- 	PlayerToFine = tonumber(PlayerToFine)
-		-- 	table.remove(commandargs,1)
-		-- 	local amountToFine = commandargs[1]
-		-- 	if amountToFine ~= nil then
-		-- 		amountToFine = tonumber(amountToFine)
-		-- 		local bankBalance = tonumber(ActivePlayers[PlayerToFine].getBucks(ActivePlayers[PlayerToFine]))
-		-- 		if bankBalance ~= nil then
-		-- 			if amountToFine < bankBalance then --if the player has enough money in their bank
-		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine) --then take the fine out of their bank
-		-- 			else --otherwise, take it out of their bank and cash
-		-- 				local cashDifference = amountToFine - bankBalance
-		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine)
-		-- 				ActivePlayers[PlayerToFine].deductCash(ActivePlayers[PlayerToFine], cashDifference)
-		-- 			end
-		-- 		else
-		-- 			rprint(PlayerIndex, "Invalid fine amount specified!")
-		-- 		end
-		-- 	else
-		-- 		rprint(PlayerIndex, "Invalid fine amount specified")
-		-- 	end
-		-- else
-		-- 	rprint(PlayerIndex, "Invalid player index specified!")
-		-- end
-		rprint(PlayerIndex, "Work in progress")
-	elseif commandargs[1] == "enterhq" then
-		if playerIsInArea(PlayerIndex, "hqenter") then
-			execute_command("t "..PlayerIndex.." hqentrance")
-		else
-			rprint(PlayerIndex, "You must be at HQ entrance to enter HQ!")
-		end
-	elseif commandargs[1] == "enterhqmagically" then
-		execute_command("t "..PlayerIndex.." hqentrance")
-	elseif commandargs[1] == "exithq" then
-		execute_command("t "..PlayerIndex.." hqexit")
-	else
-		rprint(PlayerIndex, "Invalid cop command was issued!")
+	else --otherwise, let them know that they need to exit the vehicle to park it.
+		rprint(playerIndex, "You need to exit the vehicle first!")
 	end
+
+	return true
+end
+------------------------------------------------------------
+-- from sam_lie
+-- Compatible with Lua 5.0 and 5.1.
+-- Disclaimer : use at own risk especially for hedge fund reports :-)
+--http://lua-users.org/wiki/FormattingNumbers
+---============================================================
+-- add comma to separate thousands
+-- 
+function comma_value(amount)
+	local formatted = amount
+	while true do  
+	  formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
+	  if (k==0) then
+		break
+	  end
+	end
+	return formatted
+end
+  -- rounds a number to the nearest decimal places
+function round(val, decimal)
+	if (decimal) then
+	  return math.floor( (val * 10^decimal) + 0.5) / (10^decimal)
+	else
+	  return math.floor(val+0.5)
+	end
+end
+  -- given a numeric value formats output with comma to separate thousands
+  -- and rounded to given decimal places
+function format_num(amount, decimal, prefix, neg_prefix)
+	local str_amount,  formatted, famount, remain
+  
+	decimal = decimal or 2  -- default 2 decimal places
+	neg_prefix = neg_prefix or "-" -- default negative sign
+  
+	famount = math.abs(round(amount,decimal))
+	famount = math.floor(famount)
+  
+	remain = round(math.abs(amount) - famount, decimal)
+  
+		  -- comma to separate the thousands
+	formatted = comma_value(famount)
+  
+		  -- attach the decimal portion
+	if (decimal > 0) then
+	  remain = string.sub(tostring(remain),3)
+	  formatted = formatted .. "." .. remain ..
+				  string.rep("0", decimal - string.len(remain))
+	end
+  
+		  -- attach prefix string e.g '$' 
+	formatted = (prefix or "") .. formatted 
+  
+		  -- if value is negative then format accordingly
+	if (amount<0) then
+	  if (neg_prefix=="()") then
+		formatted = "("..formatted ..")"
+	  else
+		formatted = neg_prefix .. formatted 
+	  end
+	end
+  
+	return formatted
+end
+function niceMoneyDisplay(bucksToDisplay)
+	bucksToDisplay = tonumber(bucksToDisplay)
+	return format_num(bucksToDisplay, 2, "$")
+end
+
+function splitString (inputstr, sep)
+        local t={}
+        if sep == nil then
+            for str in inputstr:gmatch("%w+") do 
+                table.insert(t, str)
+            end
+        else
+            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+            end
+        end
+        return t
 end
 
 
@@ -1271,78 +1351,6 @@ function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a s
 	Spawn(playerIndex, vehicleToDrive) --spawn it
 
 	return true
-end
-
-function handlePayCommand(playerIndex, commandName, commandArgs)
-
-    if not validateCommand(commandName, 'pay') then return false end
-
-    local isAdmin = playerIsAdmin(playerIndex)
-
-    if not isAdmin then rprint(playerIndex, "You do not have sufficent admin privileges to execute this command."); return true end
-    
-    local playerToPay = tonumber(commandArgs[1])
-    local amountToPay = tonumber(commandArgs[2])
-    payAPlayer(playerToPay, amountToPay)
-
-    return true
-
-end
-
-function handleSaveCommand(playerIndex, commandName, commandArgs) 
-    if not validateCommand(commandName, "save") then return false end
-
-    writePlayerData(playerIndex)
-
-    return true
-end
-
-function splitString (inputstr, sep)
-        local t={}
-        if sep == nil then
-            for str in inputstr:gmatch("%w+") do 
-                table.insert(t, str)
-            end
-        else
-            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-                table.insert(t, str)
-            end
-        end
-        return t
-end
-
-function buyVehicle(PlayerIndex, vehicleToBuy)
-	if playerIsInArea(PlayerIndex, "dealership") then
-		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
-			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
-				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
-					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
-						--then they can buy it
-							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-							if updatedVehicles[vehicleToBuy] == nil then
-								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								updatedVehicles[vehicleToBuy] = vehicleToBuy
-								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
-								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
-								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
-							else
-								rprint(PlayerIndex, "You already own this vehicle!")
-							end
-					else
-						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
-					end
-				else
-					rprint(PlayerIndex, "This vehicle is not for sale.")
-				end
-			else
-				rprint(PlayerIndex, "An invalid vehicle name was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
-	end
 end
 
 
