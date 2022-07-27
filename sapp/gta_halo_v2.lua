@@ -1,6 +1,13 @@
 api_version="1.10.1.0"
 
 
+function new(self, o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return self
+end
+
 function FindBipedTag(TagName)
     local tag_array = read_dword(0x40440000)
     for i=0,read_word(0x4044000C)-1 do
@@ -97,38 +104,37 @@ FREE_GUN_TO_DISTRIBUTE = "remington"
 FREE_CAR_TO_DISTRIBUTE = "countach"
 FREE_MONEY_TO_DISTRIBUTE = 10000
 
-GameEvents = {
-    carEvent = false,
-    moneyEvent = false,
-    gunEvent = false
+-- GameEvent object, representing a single event.
+
+GameEvent = {
+    active=false,
+    item=""
 }
 
-function GameEvents:disableMoneyEvent()
-    self.moneyEvent = false
+function GameEvent:setActive(isActive)
+    self.active = isActive
+    return self
 end
 
-function GameEvents:enableMoneyEvent()
-    self.moneyEvent = true
+function GameEvent:setItem(itemToSet)
+    self.item = itemToSet
+    return self
 end
 
-function GameEvents:disableGunEvent()
-    self.gunEvent = false
+function GameEvent:new(o)
+    return new(self, o)
 end
 
-function GameEvents:enableGunEvent()
-    self.gunEvent = true
-end
+-- Table of GameEvents, accessible by server.
 
-function GameEvents:disableCarEvent()
-    self.carEvents = false
-end
+GameEvents = {
+    carEvent = GameEvent:new():setActive(false):setItem(FREE_CAR_TO_DISTRIBUTE),
+    moneyEvent = GameEvent:new():setActive(false):setItem(FREE_MONEY_TO_DISTRIBUTE),
+    gunEvent = GameEvent:new():setActive(false):setItem(FREE_GUN_TO_DISTRIBUTE)
+}
 
-function GameEvents:enableCarEvent()
-    self.carEvents = true
-end
-
-function GameEvents:new(o)
-    return new(o)
+function GameEvent:get(key)
+    return self[key]
 end
 
 -- OLD
@@ -313,13 +319,6 @@ waitingToReward = 0
 needToResetGame = false
 --end of dynamic tables
 --end of Startup stuff
-
-function new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
 
 function AlertServer(PlayerIndex, message)
 	if PlayerIndex ~= nil then
@@ -981,16 +980,20 @@ function buyVehicle(PlayerIndex, vehicleToBuy)
 	end
 end
 
-function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
-	if PlayerIsInAVehicle[PlayerIndex] == 0 then --if the player not in a vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and the player is at a garage
-			execute_command("vdel " .. PlayerIndex) --then park their vehicle
-			PlayerSpawnedVehicles[PlayerIndex] = 0
-		else
-			rprint(PlayerIndex, "You need to be at a garage in order to park your car!")
+
+function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
+	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
+			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
+				Spawn(PlayerIndex, commandargs) --spawn it
+			else --otherwise, let them know that they don't own it.
+				rprint(PlayerIndex, "You do not own this vehicle.")
+			end
+		else --otherwise, let them know that they are not at a valid garage
+			rprint(PlayerIndex, "You need to be at a valid garage location!")
 		end
-	else --otherwise, let them know that they need to exit the vehicle to park it.
-		rprint(PlayerIndex, "You need to exit the vehicle first!")
+	else
+		rprint(PlayerIndex, "You already have a summoned vehicle!")
 	end
 end
 
@@ -1181,20 +1184,16 @@ function copCommands(PlayerIndex, commandargs)
 	end
 end
 
-
-function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
-	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
-			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
-				Spawn(PlayerIndex, commandargs) --spawn it
-			else --otherwise, let them know that they don't own it.
-				rprint(PlayerIndex, "You do not own this vehicle.")
-			end
-		else --otherwise, let them know that they are not at a valid garage
-			rprint(PlayerIndex, "You need to be at a valid garage location!")
+function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
+	if PlayerIsInAVehicle[PlayerIndex] == 0 then --if the player not in a vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and the player is at a garage
+			execute_command("vdel " .. PlayerIndex) --then park their vehicle
+			PlayerSpawnedVehicles[PlayerIndex] = 0
+		else
+			rprint(PlayerIndex, "You need to be at a garage in order to park your car!")
 		end
-	else
-		rprint(PlayerIndex, "You already have a summoned vehicle!")
+	else --otherwise, let them know that they need to exit the vehicle to park it.
+		rprint(PlayerIndex, "You need to exit the vehicle first!")
 	end
 end
 

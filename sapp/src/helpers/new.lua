@@ -1,8 +1,8 @@
 -- NO_IMPORTS
 
-function new(o)
+function new(self, o)
     o = o or {}
     setmetatable(o, self)
     self.__index = self
-    return o
+    return self
 end

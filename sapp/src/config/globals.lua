@@ -10,38 +10,37 @@ FREE_GUN_TO_DISTRIBUTE = "remington"
 FREE_CAR_TO_DISTRIBUTE = "countach"
 FREE_MONEY_TO_DISTRIBUTE = 10000
 
-GameEvents = {
-    carEvent = false,
-    moneyEvent = false,
-    gunEvent = false
+-- GameEvent object, representing a single event.
+
+GameEvent = {
+    active=false,
+    item=""
 }
 
-function GameEvents:disableMoneyEvent()
-    self.moneyEvent = false
+function GameEvent:setActive(isActive)
+    self.active = isActive
+    return self
 end
 
-function GameEvents:enableMoneyEvent()
-    self.moneyEvent = true
+function GameEvent:setItem(itemToSet)
+    self.item = itemToSet
+    return self
 end
 
-function GameEvents:disableGunEvent()
-    self.gunEvent = false
+function GameEvent:new(o)
+    return new(self, o)
 end
 
-function GameEvents:enableGunEvent()
-    self.gunEvent = true
-end
+-- Table of GameEvents, accessible by server.
 
-function GameEvents:disableCarEvent()
-    self.carEvents = false
-end
+GameEvents = {
+    carEvent = GameEvent:new():setActive(false):setItem(FREE_CAR_TO_DISTRIBUTE),
+    moneyEvent = GameEvent:new():setActive(false):setItem(FREE_MONEY_TO_DISTRIBUTE),
+    gunEvent = GameEvent:new():setActive(false):setItem(FREE_GUN_TO_DISTRIBUTE)
+}
 
-function GameEvents:enableCarEvent()
-    self.carEvents = true
-end
-
-function GameEvents:new(o)
-    return new(o)
+function GameEvent:get(key)
+    return self[key]
 end
 
 -- OLD
