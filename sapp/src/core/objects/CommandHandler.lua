@@ -1,6 +1,6 @@
 -- BEGIN_IMPORT
--- import core.commands.purchaseCommands.buyGun end
--- import core.commands.purchaseCommands.buyVehicle end
+-- import core.commands.helpers.buyGun end
+-- import core.commands.helpers.buyVehicle end
 -- import core.commands.copCommands end
 -- import core.commands.handleDriveCommand end
 -- import core.commands.handleParkCommand end
