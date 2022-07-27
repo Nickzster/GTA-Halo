@@ -108,6 +108,7 @@ COMMAND_NAMES = {
     ["pay"] = "pay",
     ["save"] = "save",
     ["buy"] = "buy",
+    ["drop"] = "drop"
 }
 
 
@@ -826,18 +827,62 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	end
 end
 
-function splitString (inputstr, sep)
-        local t={}
-        if sep == nil then
-            for str in inputstr:gmatch("%w+") do 
-                table.insert(t, str)
+function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
+	
+	if not validateCommand(commandName, 'park') then return false end
+
+	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
+		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
+			execute_command("vdel " .. playerIndex) --then park their vehicle
+			PlayerSpawnedVehicles[playerIndex] = 0
+		else
+			rprint(playerIndex, "You need to be at a garage in order to park your car!")
+		end
+	else --otherwise, let them know that they need to exit the vehicle to park it.
+		rprint(playerIndex, "You need to exit the vehicle first!")
+	end
+
+	return true
+end
+
+function handleBuyCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "buy") then return false end
+
+    local localPlayer = ActivePlayers[playerIndex]
+
+    if VEHICLEPRICES[commandArgs[1]] ~= nil then
+        buyVehicle(playerIndex, commandArgs[1])
+    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
+        buyGun(playerIndex, commandArgs[1])
+    elseif commandArgs[1] == "ammo" then
+        if playerIsInArea(playerIndex, "gunstore") then
+            if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
+                --then allow the purchase
+                localPlayer:deductBucks(MAX_AMMO_PRICE)
+                execute_command("ammo "..playerIndex.." 999 0")
+                rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
+            else
+                --otherwise tell them they do not have enough
+                rprint(playerIndex, "You do not have enough money to buy ammo.")
             end
         else
-            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-                table.insert(t, str)
-            end
+            rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
         end
-        return t
+    else
+        rprint(playerIndex, "Invalid object specified.")
+    end
+
+    return true
+end
+
+function handleDropCommand(playerIndex, commandName, commandArgs)
+
+    if validateCommand(commandName) then return false end
+
+    drop_weapon(playerIndex)
+
+    return true
+
 end
 
 function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
@@ -870,35 +915,16 @@ end
 
 
 
-function handleHireCopCommand(playerIndex, commandName, commandArgs)
+function handleCopCommand(playerIndex, commandName, commandArgs) 
+    if not validateCommand(commandName, "cop") then return false end
 
-    if not validateCommand(commandName, "hirecop") then return false end
-
-    if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
-        table.remove(commandargs,1)
-        local hiredCop = tonumber(commandargs[1])
-        if player_present(hiredCop) then
-            if ActivePlayers[hiredCop]:setCopPosition(tonumber(commandargs[2])) then
-                rprint(hiredCop, "You are now a "..COPPOSITIONS[tonumber(commandargs[2])])
-                rprint(playerIndex, "You have successfully changed "..ActivePlayers[hiredCop]:getName().." to be a "..COPPOSITIONS[tonumber(commandargs[2])])
-                ActivePlayers[hiredCop]:setProfession(COPPOSITIONS[tonumber(commandargs[2])])
-                if ActivePlayers[hiredCop]:getCopPosition() == 0 then
-                    rprint(playerIndex, "AUTHORITY LOST")
-                    ActivePlayers[hiredCop]:setCopAuthority(0)
-                else
-                    rprint(playerIndex, "AUTHORITY GAINED")
-                    ActivePlayers[hiredCop]:setCopAuthority(1)
-                end
-            else
-                rprint(playerIndex, "You did not specify a valid cop rank.")
-            end
-        else
-            rprint(playerIndex, "This person is not active on the server right now.")
-        end
-    else
-        rprint(playerIndex, "You do not have permission to hire cops!")
-    end
-    rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
+	local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
+	if tempCopStatus > 0 then
+		table.remove(commandargs,1)
+		copCommands(playerIndex, commandargs)
+	else
+		rprint(playerIndex, "You must be a cop to execute a cop command!")
+	end
 
     return true
 end
@@ -917,118 +943,6 @@ function handlePayCommand(playerIndex, commandName, commandArgs)
 
     return true
 
-end
-
-
-function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a specified vehicle for the player that requests it.
-	if not validateCommand(commandName, 'drive') then return false end
-	local vehicleToDrive = commandArgs[1]
-
-	local hasActiveVehicle = PlayerSpawnedVehicles[playerIndex] == 1
-	local isInGarage = playerIsInArea(playerIndex, "garage") == true
-	local playerOwnsVehicle = ownsThisCar(playerIndex, vehicleToDrive) == true
-
-	if hasActiveVehicle then rprint(playerIndex, "You already have a summoned vehicle!"); return true end
-
-	if not isInGarage then rprint(playerIndex, "You need to be at a valid garage location!"); return true end
-
-	if not playerOwnsVehicle then rprint(playerIndex, "You do not own this vehicle."); return true end
-
-	Spawn(playerIndex, vehicleToDrive) --spawn it
-
-	return true
-end
-
-function copCommands(PlayerIndex, commandargs)
-	if commandargs[1] == "setwantedlevel" then
-		table.remove(commandargs,1)
-		WantedPlayer = tonumber(commandargs[1])
-		if WantedPlayer ~= nil then
-			table.remove(commandargs,1)
-			local tempWantedLevel = tonumber(commandargs[1])
-			if tempWantedLevel ~= nil then
-				ActivePlayers[WantedPlayer].setWantedLevel(ActivePlayers[WantedPlayer], tempWantedLevel)
-				if tempWantedLevel > 0 then
-					AlertServer(nil, "A wanted level was issued by the police! Be on the lookout for someone suspicious!")
-					AlertServer(WantedPlayer, "You now have a wanted level of "..tempWantedLevel)
-				else
-					AlertServer(nil, "A wanted level has been removed. It is now a little safer...")
-					AlertServer(WantedPlayer, "Your wanted level has been removed.")
-				end
-			else
-				rprint(PlayerIndex, "Invalid wanted level was specified!")
-			end
-		else
-			rprint(PlayerIndex, "Invalid player was specified!")
-		end
-	elseif commandargs[1] == "detain" then
-		table.remove(commandargs,1)
-		local PlayerToDetain = tonumber(commandargs[1])
-		if PlayerToDetain ~= nil then
-			distance = getDistance(PlayerIndex, PlayerToDetain)
-				if distance < 1 then
-					execute_command("s "..PlayerToDetain.." 0")
-					AlertServer(PlayerToDetain, "You have been detained!")
-				else
-					rprint(PlayerIndex, "You are too far away to do that!")
-				end
-		else
-			rprint(PlayerIndex, "Invalid player specified!")
-		end
-	elseif commandargs[1] == "undetain" then
-		table.remove(commandargs,1)
-		PlayerToUndetain = tonumber(commandargs[1])
-		execute_command("s "..PlayerToUndetain.." 1")
-		AlertServer(PlayerToDetain, "You have been undetained!")
-	elseif commandargs[1] == "confiscate" then
-		table.remove(commandargs,1)
-		local PlayerToConfiscate = tonumber(commandargs[1])
-		if getDistance(PlayerIndex, PlayerToConfiscate) < 1 then
-			execute_command("wdel "..PlayerToConfiscate.." 5")
-		else
-			rprint(PlayerIndex, "The player is too far away for you to do that!")
-		end
-	elseif commandargs[1] == "fine" then
-		-- table.remove(commandargs,1)
-		-- local PlayerToFine = commandargs[1]
-		-- if PlayerToFine ~= nil then
-		-- 	PlayerToFine = tonumber(PlayerToFine)
-		-- 	table.remove(commandargs,1)
-		-- 	local amountToFine = commandargs[1]
-		-- 	if amountToFine ~= nil then
-		-- 		amountToFine = tonumber(amountToFine)
-		-- 		local bankBalance = tonumber(ActivePlayers[PlayerToFine].getBucks(ActivePlayers[PlayerToFine]))
-		-- 		if bankBalance ~= nil then
-		-- 			if amountToFine < bankBalance then --if the player has enough money in their bank
-		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine) --then take the fine out of their bank
-		-- 			else --otherwise, take it out of their bank and cash
-		-- 				local cashDifference = amountToFine - bankBalance
-		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine)
-		-- 				ActivePlayers[PlayerToFine].deductCash(ActivePlayers[PlayerToFine], cashDifference)
-		-- 			end
-		-- 		else
-		-- 			rprint(PlayerIndex, "Invalid fine amount specified!")
-		-- 		end
-		-- 	else
-		-- 		rprint(PlayerIndex, "Invalid fine amount specified")
-		-- 	end
-		-- else
-		-- 	rprint(PlayerIndex, "Invalid player index specified!")
-		-- end
-		rprint(PlayerIndex, "Work in progress")
-	elseif commandargs[1] == "enterhq" then
-		if playerIsInArea(PlayerIndex, "hqenter") then
-			execute_command("t "..PlayerIndex.." hqentrance")
-		else
-			rprint(PlayerIndex, "You must be at HQ entrance to enter HQ!")
-		end
-	elseif commandargs[1] == "enterhqmagically" then
-		execute_command("t "..PlayerIndex.." hqentrance")
-	elseif commandargs[1] == "exithq" then
-		execute_command("t "..PlayerIndex.." hqexit")
-	else
-		rprint(PlayerIndex, "Invalid cop command was issued!")
-	end
 end
 
 function CommandHandler (playerIndex,Command,Environment,Password)
@@ -1050,21 +964,10 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			if handleBuyCommand(playerIndex, commandName, commandArgs) then return false end
 			if handleCopCommand(playerIndex, commandName, commandArgs) then return false end 
 			if handleHireCopCommand(playerIndex, commandName, commandArgs) then return false end
-
-			if commandargs[1] == "testauthority" then
-					if localPlayer:getCopAuthority() == 1 then
-						rprint(playerIndex, "You have authority.")
-					else
-						rprint(playerIndex, "You do not have authority")
-					end
-					return false
-			elseif commandargs[1] == "showid" then
-					ShowIDFunction(playerIndex)
-					return false
-			elseif commandargs[1] == "drop" then
-					drop_weapon(playerIndex)
-					return false
-			elseif commandargs[1] == "redeem" then
+			if handleShowIDCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleDropCommand(playerIndex, commandName, commandArgs) then return false end
+			
+			if commandargs[1] == "redeem" then
 				if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
 					table.remove(commandargs,1)
 					local typeOfEvent = commandargs[1]
@@ -1229,52 +1132,24 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 
 end
 
-function handleParkCommand(playerIndex, commandName, commandArgs) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
-	
-	if not validateCommand(commandName, 'park') then return false end
 
-	if PlayerIsInAVehicle[playerIndex] == 0 then --if the player not in a vehicle
-		if playerIsInArea(playerIndex, "garage") then --and the player is at a garage
-			execute_command("vdel " .. playerIndex) --then park their vehicle
-			PlayerSpawnedVehicles[playerIndex] = 0
-		else
-			rprint(playerIndex, "You need to be at a garage in order to park your car!")
-		end
-	else --otherwise, let them know that they need to exit the vehicle to park it.
-		rprint(playerIndex, "You need to exit the vehicle first!")
-	end
+function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a specified vehicle for the player that requests it.
+	if not validateCommand(commandName, 'drive') then return false end
+	local vehicleToDrive = commandArgs[1]
+
+	local hasActiveVehicle = PlayerSpawnedVehicles[playerIndex] == 1
+	local isInGarage = playerIsInArea(playerIndex, "garage") == true
+	local playerOwnsVehicle = ownsThisCar(playerIndex, vehicleToDrive) == true
+
+	if hasActiveVehicle then rprint(playerIndex, "You already have a summoned vehicle!"); return true end
+
+	if not isInGarage then rprint(playerIndex, "You need to be at a valid garage location!"); return true end
+
+	if not playerOwnsVehicle then rprint(playerIndex, "You do not own this vehicle."); return true end
+
+	Spawn(playerIndex, vehicleToDrive) --spawn it
 
 	return true
-end
-
-function handleBuyCommand(playerIndex, commandName, commandArgs)
-    if not validateCommand(commandName, "buy") then return false end
-
-    local localPlayer = ActivePlayers[playerIndex]
-
-    if VEHICLEPRICES[commandArgs[1]] ~= nil then
-        buyVehicle(playerIndex, commandArgs[1])
-    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
-        buyGun(playerIndex, commandArgs[1])
-    elseif commandArgs[1] == "ammo" then
-        if playerIsInArea(playerIndex, "gunstore") then
-            if tonumber(localPlayer:getBucks()) >= MAX_AMMO_PRICE then--if the player has enough money
-                --then allow the purchase
-                localPlayer:deductBucks(MAX_AMMO_PRICE)
-                execute_command("ammo "..playerIndex.." 999 0")
-                rprint(playerIndex, "Purchase of max ammo for "..niceMoneyDisplay(MAX_AMMO_PRICE).." was successful.")
-            else
-                --otherwise tell them they do not have enough
-                rprint(playerIndex, "You do not have enough money to buy ammo.")
-            end
-        else
-            rprint(playerIndex, "You need to be at a gunstore to buy ammo.")
-        end
-    else
-        rprint(playerIndex, "Invalid object specified.")
-    end
-
-    return true
 end
 ------------------------------------------------------------
 -- from sam_lie
@@ -1344,27 +1219,161 @@ function niceMoneyDisplay(bucksToDisplay)
 	return format_num(bucksToDisplay, 2, "$")
 end
 
-
-function handleCopCommand(playerIndex, commandName, commandArgs) 
-    if not validateCommand(commandName, "cop") then return false end
-
-	local tempCopStatus = ActivePlayers[playerIndex].getCopStatus(ActivePlayers[playerIndex])
-	if tempCopStatus > 0 then
-		table.remove(commandargs,1)
-		copCommands(playerIndex, commandargs)
-	else
-		rprint(playerIndex, "You must be a cop to execute a cop command!")
-	end
-
-    return true
-end
-
 function handleSaveCommand(playerIndex, commandName, commandArgs) 
     if not validateCommand(commandName, "save") then return false end
 
     writePlayerData(playerIndex)
 
     return true
+end
+
+function splitString (inputstr, sep)
+        local t={}
+        if sep == nil then
+            for str in inputstr:gmatch("%w+") do 
+                table.insert(t, str)
+            end
+        else
+            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+            end
+        end
+        return t
+end
+
+
+function handleHireCopCommand(playerIndex, commandName, commandArgs)
+
+    if not validateCommand(commandName, "hirecop") then return false end
+
+    if adminLevel >= 4 or localPlayer:getProfession():getTitle() == "sheriff" then
+        table.remove(commandargs,1)
+        local hiredCop = tonumber(commandargs[1])
+        if player_present(hiredCop) then
+            if ActivePlayers[hiredCop]:setCopPosition(tonumber(commandargs[2])) then
+                rprint(hiredCop, "You are now a "..COPPOSITIONS[tonumber(commandargs[2])])
+                rprint(playerIndex, "You have successfully changed "..ActivePlayers[hiredCop]:getName().." to be a "..COPPOSITIONS[tonumber(commandargs[2])])
+                ActivePlayers[hiredCop]:setProfession(COPPOSITIONS[tonumber(commandargs[2])])
+                if ActivePlayers[hiredCop]:getCopPosition() == 0 then
+                    rprint(playerIndex, "AUTHORITY LOST")
+                    ActivePlayers[hiredCop]:setCopAuthority(0)
+                else
+                    rprint(playerIndex, "AUTHORITY GAINED")
+                    ActivePlayers[hiredCop]:setCopAuthority(1)
+                end
+            else
+                rprint(playerIndex, "You did not specify a valid cop rank.")
+            end
+        else
+            rprint(playerIndex, "This person is not active on the server right now.")
+        end
+    else
+        rprint(playerIndex, "You do not have permission to hire cops!")
+    end
+    rprint(playerIndex, "This command is WIP (You entered "..commandargs[1]..")")
+
+    return true
+end
+
+function handleShowIDCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "showid") then return false end
+
+    ShowIDFunction(playerIndex)
+    
+    return true
+
+end
+
+function copCommands(PlayerIndex, commandargs)
+	if commandargs[1] == "setwantedlevel" then
+		table.remove(commandargs,1)
+		WantedPlayer = tonumber(commandargs[1])
+		if WantedPlayer ~= nil then
+			table.remove(commandargs,1)
+			local tempWantedLevel = tonumber(commandargs[1])
+			if tempWantedLevel ~= nil then
+				ActivePlayers[WantedPlayer].setWantedLevel(ActivePlayers[WantedPlayer], tempWantedLevel)
+				if tempWantedLevel > 0 then
+					AlertServer(nil, "A wanted level was issued by the police! Be on the lookout for someone suspicious!")
+					AlertServer(WantedPlayer, "You now have a wanted level of "..tempWantedLevel)
+				else
+					AlertServer(nil, "A wanted level has been removed. It is now a little safer...")
+					AlertServer(WantedPlayer, "Your wanted level has been removed.")
+				end
+			else
+				rprint(PlayerIndex, "Invalid wanted level was specified!")
+			end
+		else
+			rprint(PlayerIndex, "Invalid player was specified!")
+		end
+	elseif commandargs[1] == "detain" then
+		table.remove(commandargs,1)
+		local PlayerToDetain = tonumber(commandargs[1])
+		if PlayerToDetain ~= nil then
+			distance = getDistance(PlayerIndex, PlayerToDetain)
+				if distance < 1 then
+					execute_command("s "..PlayerToDetain.." 0")
+					AlertServer(PlayerToDetain, "You have been detained!")
+				else
+					rprint(PlayerIndex, "You are too far away to do that!")
+				end
+		else
+			rprint(PlayerIndex, "Invalid player specified!")
+		end
+	elseif commandargs[1] == "undetain" then
+		table.remove(commandargs,1)
+		PlayerToUndetain = tonumber(commandargs[1])
+		execute_command("s "..PlayerToUndetain.." 1")
+		AlertServer(PlayerToDetain, "You have been undetained!")
+	elseif commandargs[1] == "confiscate" then
+		table.remove(commandargs,1)
+		local PlayerToConfiscate = tonumber(commandargs[1])
+		if getDistance(PlayerIndex, PlayerToConfiscate) < 1 then
+			execute_command("wdel "..PlayerToConfiscate.." 5")
+		else
+			rprint(PlayerIndex, "The player is too far away for you to do that!")
+		end
+	elseif commandargs[1] == "fine" then
+		-- table.remove(commandargs,1)
+		-- local PlayerToFine = commandargs[1]
+		-- if PlayerToFine ~= nil then
+		-- 	PlayerToFine = tonumber(PlayerToFine)
+		-- 	table.remove(commandargs,1)
+		-- 	local amountToFine = commandargs[1]
+		-- 	if amountToFine ~= nil then
+		-- 		amountToFine = tonumber(amountToFine)
+		-- 		local bankBalance = tonumber(ActivePlayers[PlayerToFine].getBucks(ActivePlayers[PlayerToFine]))
+		-- 		if bankBalance ~= nil then
+		-- 			if amountToFine < bankBalance then --if the player has enough money in their bank
+		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine) --then take the fine out of their bank
+		-- 			else --otherwise, take it out of their bank and cash
+		-- 				local cashDifference = amountToFine - bankBalance
+		-- 				ActivePlayers[PlayerToFine].deductBank(ActivePlayers[PlayerToFine], amountToFine)
+		-- 				ActivePlayers[PlayerToFine].deductCash(ActivePlayers[PlayerToFine], cashDifference)
+		-- 			end
+		-- 		else
+		-- 			rprint(PlayerIndex, "Invalid fine amount specified!")
+		-- 		end
+		-- 	else
+		-- 		rprint(PlayerIndex, "Invalid fine amount specified")
+		-- 	end
+		-- else
+		-- 	rprint(PlayerIndex, "Invalid player index specified!")
+		-- end
+		rprint(PlayerIndex, "Work in progress")
+	elseif commandargs[1] == "enterhq" then
+		if playerIsInArea(PlayerIndex, "hqenter") then
+			execute_command("t "..PlayerIndex.." hqentrance")
+		else
+			rprint(PlayerIndex, "You must be at HQ entrance to enter HQ!")
+		end
+	elseif commandargs[1] == "enterhqmagically" then
+		execute_command("t "..PlayerIndex.." hqentrance")
+	elseif commandargs[1] == "exithq" then
+		execute_command("t "..PlayerIndex.." hqexit")
+	else
+		rprint(PlayerIndex, "Invalid cop command was issued!")
+	end
 end
 
 
