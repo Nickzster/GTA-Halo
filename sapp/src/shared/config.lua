@@ -39,5 +39,6 @@ PROFESSIONS = {
 
 COMMAND_NAMES = {
     ["drive"] = "drive",
+    ["park"] = "park"
 }
 

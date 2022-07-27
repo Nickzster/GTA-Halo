@@ -2,11 +2,12 @@
 -- import helpers.gameUtils end
 -- import shared.globals end
 -- import shared.config end
+-- import helpers.validateCommand end
 -- END_IMPORT
 
 
 function handleDriveCommand(playerIndex, commandName, commandArgs) --Summons a specified vehicle for the player that requests it.
-	if commandName ~= COMMAND_NAMES['drive'] then return false end
+	if not validateCommand(commandName, 'drive') then return false end
 	local vehicleToDrive = commandArgs[1]
 
 	local hasActiveVehicle = PlayerSpawnedVehicles[playerIndex] == 1

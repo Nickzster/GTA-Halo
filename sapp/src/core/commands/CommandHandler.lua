@@ -2,8 +2,8 @@
 -- import core.commands.buyGun end
 -- import core.commands.buyVehicle end
 -- import core.commands.copCommands end
--- import core.commands.driveCommand end
--- import core.commands.parkCommand end
+-- import core.commands.handleDriveCommand end
+-- import core.commands.handleParkCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -16,23 +16,22 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 			Command = string.lower(Command)
 			local adminLevel = tonumber(get_var(playerIndex, "$lvl")) -- Gets player admin level
 			local localPlayer = ActivePlayers[playerIndex]
-			--rprint(playerIndex, "You are admin level "..adminLevel)
-			-- commandargs = {}
-			-- for w in Command:gmatch("%w+") do commandargs[#commandargs+1] = w end
+			
 			local commandargs = splitString(Command)
 			local commandArgs = splitString(Command)
 			local commandName = table.remove(commandArgs, 1)
 
 			if handleDriveCommand(playerIndex, commandName, commandArgs) then return false end
+			if handleParkCommand(playerIndex, commandName, commandArgs) then return false end
 
 			-- if commandargs[1] == "drive" then --/drive <car> -> summons the specified car if the player owns it.
 			-- 		table.remove(commandargs, 1) --pop the first element off the command queue.
 			-- 		DriveCommand(playerIndex, commandargs[1])
 			-- 		return false
-			if commandargs[1] == "park" then --/park -> despawns the specified car if the player owns it
-					ParkCommand(playerIndex)
-					return false
-			elseif commandargs[1] == "pay" then --/pay <playerIndex> <amount> -> pays player a certain amount of money
+			-- if commandargs[1] == "park" then --/park -> despawns the specified car if the player owns it
+			-- 		ParkCommand(playerIndex)
+			-- 		return false
+			if commandargs[1] == "pay" then --/pay <playerIndex> <amount> -> pays player a certain amount of money
 					if adminLevel > 0  then
 						table.remove(commandargs,1)
 						local playerToPay = tonumber(commandargs[1])
