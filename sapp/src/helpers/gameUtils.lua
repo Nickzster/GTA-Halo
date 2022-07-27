@@ -87,3 +87,8 @@ function Spawn(PlayerIndex, commandargs) --utility function for DriveCommand
 		end
 	end
 end
+
+function buildLocationString(locationType, locationName, isEntering) 
+	if isEntering ~= nil then return "You have entered a(n) " .. locationType .. " in " .. locationName .. "." end
+	return "You have exited a(n) " .. locationType .. " in " .. locationName .. "."
+end

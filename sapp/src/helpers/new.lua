@@ -1,8 +1,8 @@
 -- NO_IMPORTS
 
-function new(self, o)
-    o = o or {}
-    setmetatable(o, self)
+new = function(self, o)
+    local newClassInstance = o or {}
+    setmetatable(newClassInstance, self)
     self.__index = self
-    return self
+    return newClassInstance
 end

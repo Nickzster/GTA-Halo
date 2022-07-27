@@ -20,20 +20,7 @@ end
 -- OLD
 
 ClaimedRewards = {}
-LOCATIONS = {
-    ["dealership_1"] = "the dealership in Camel.",
-    ["dealership_2"] = "the anarchist dealership.",
-    ["garage_5"] = "the garage in Camel.",
-    ["apartments"] = "the apartments in Camel.",
-    ["gunstore_3"] = "the downtown ammunation in Camel.",
-    ["garage_1"] = "a garage in Cottontail.",
-    ["garage_2"] = "a garage in Foxtown.",
-    ["garage_3"] = "a garage in Scropion Claw.",
-    ["garage_4"] = "a garage in Scropion Tail.",
-    ["gunstore_1"] = "an ammunation in Foxtown.",
-    ["gunstore_2"] = "an ammunation in Scropion",
-    ["recruiter"] = "the recruiter in Camel."
-}
+
 PROFESSIONS = {
     ["sheriff"] = 10000,
     ["deputy"] = 7500,

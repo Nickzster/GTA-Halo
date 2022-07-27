@@ -10,6 +10,7 @@
 -- import core.GameEvent end
 -- import shared.config end
 -- import core.handlers.handleObjectSpawn end
+-- import core.Location end
 --END_IMPORT
 
 
@@ -40,12 +41,24 @@ end
 
 function OnAreaEnter(PlayerIndex, areaEntered)
 	PlayerAreas[PlayerIndex] = areaEntered
-	rprint(PlayerIndex, "You have entered "..LOCATIONS[areaEntered])
+	local areaObject = LOCATIONS[areaEntered]
+	if areaObject == nil then rprint(PlayerIndex, "You have exited an area! (1)"); return end
+	local areaName = areaObject:getName()
+	local areaType = areaObject:getType()
+	if areaName == nil or areaType == nil then rprint(PlayerIndex, "You exited an area! (2)"); return end
+	local locationToPrint = buildLocationString(areaType, areaName, true)
+	rprint(PlayerIndex, locationToPrint)
 end
 
 function OnAreaExit(PlayerIndex, areaExited)
 	PlayerAreas[PlayerIndex] = ""
-	rprint(PlayerIndex, "You have exited "..LOCATIONS[areaExited])
+	local areaObject = LOCATIONS[areaExited]
+	if areaObject == nil then rprint(PlayerIndex, "You have exited an area! (1)"); return end
+	local areaName = areaObject:getName()
+	local areaType = areaObject:getType()
+	if areaName == nil or areaType == nil then rprint(PlayerIndex, "You exited an area! (2)"); return end
+	local locationToPrint = buildLocationString(areaType, areaName)
+	rprint(PlayerIndex, locationToPrint)
 end
 
 function OnCommand(PlayerIndex,Command,Environment,Password)

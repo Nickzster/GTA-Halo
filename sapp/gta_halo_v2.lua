@@ -1,6 +1,38 @@
 api_version="1.10.1.0"
 
 
+new = function(self, o)
+    local newClassInstance = o or {}
+    setmetatable(newClassInstance, self)
+    self.__index = self
+    return newClassInstance
+end
+
+Location = {
+    locationName="",
+    locationType=""
+}
+
+function Location:setName(locationNameToSet)
+    self.locationName = locationNameToSet
+    return self
+end
+
+function Location:getName()
+    return self.locationName
+end
+
+function Location:setType(locationTypeToSet)
+    self.locationType = locationTypeToSet
+    return self
+end
+
+function Location:getType()
+    return self.locationType
+end
+
+Location['new'] = new
+
 FREE_GUN_TO_DISTRIBUTE = "remington"
 FREE_CAR_TO_DISTRIBUTE = "countach"
 FREE_MONEY_TO_DISTRIBUTE = 10000
@@ -9,6 +41,25 @@ MAX_MONEY = 9999999
 MAX_KARMA = 2.0
 MAX_AMMO_PRICE = 750
 LOADOUT_CHANGE_PRICE = 500
+
+
+
+LOCATIONS = {
+    ["dealership_1"] = Location:new():setName("Camel"):setType("dealership"),
+    ["dealership_2"] = Location:new():setName("yonder"):setType("anarchist dealership"),
+    ["garage_5"] = Location:new():setName("Camel"):setType("garage"),
+    ["apartments"] = Location:new():setName("Camel"):setType("apartments"),
+    ["gunstore_3"] = Location:new():setName("Camel"):setType("ammunation"),
+    ["garage_1"] = Location:new():setName("Cottontail"):setType("garage"),
+    ["garage_2"] = Location:new():setName("Foxtown"):setType("garage"),
+    ["garage_3"] = Location:new():setName("Scropion Claw"):setType("garage"), 
+    ["garage_4"] = Location:new():setName("Scropion Tail"):setType("garage"),
+    ["gunstore_1"] = Location:new():setName("Foxtown"):setType("ammunation"),
+    ["gunstore_2"] = Location:new():setName("Scropion"):setType("ammunation"),
+    ["recruiter"] = Location:new():setName("Camel"):setType("recruiter")
+}
+
+
 
 -- GameEvent object, representing a single event.
 
@@ -29,13 +80,6 @@ end
 
 function GameEvent:new(o)
     return new(self, o)
-end
-
-function new(self, o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return self
 end
 
 function FindBipedTag(TagName)
@@ -126,6 +170,11 @@ function Spawn(PlayerIndex, commandargs) --utility function for DriveCommand
 	end
 end
 
+function buildLocationString(locationType, locationName, isEntering) 
+	if isEntering ~= nil then return "You have entered a(n) " .. locationType .. " in " .. locationName .. "." end
+	return "You have exited a(n) " .. locationType .. " in " .. locationName .. "."
+end
+
 
 -- Table of GameEvents, accessible by server.
 
@@ -142,20 +191,7 @@ end
 -- OLD
 
 ClaimedRewards = {}
-LOCATIONS = {
-    ["dealership_1"] = "the dealership in Camel.",
-    ["dealership_2"] = "the anarchist dealership.",
-    ["garage_5"] = "the garage in Camel.",
-    ["apartments"] = "the apartments in Camel.",
-    ["gunstore_3"] = "the downtown ammunation in Camel.",
-    ["garage_1"] = "a garage in Cottontail.",
-    ["garage_2"] = "a garage in Foxtown.",
-    ["garage_3"] = "a garage in Scropion Claw.",
-    ["garage_4"] = "a garage in Scropion Tail.",
-    ["gunstore_1"] = "an ammunation in Foxtown.",
-    ["gunstore_2"] = "an ammunation in Scropion",
-    ["recruiter"] = "the recruiter in Camel."
-}
+
 PROFESSIONS = {
     ["sheriff"] = 10000,
     ["deputy"] = 7500,
@@ -564,6 +600,36 @@ function niceMoneyDisplay(bucksToDisplay)
 	return format_num(bucksToDisplay, 2, "$")
 end
 
+
+function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
+	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
+			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
+				Spawn(PlayerIndex, commandargs) --spawn it
+			else --otherwise, let them know that they don't own it.
+				rprint(PlayerIndex, "You do not own this vehicle.")
+			end
+		else --otherwise, let them know that they are not at a valid garage
+			rprint(PlayerIndex, "You need to be at a valid garage location!")
+		end
+	else
+		rprint(PlayerIndex, "You already have a summoned vehicle!")
+	end
+end
+
+function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
+	if PlayerIsInAVehicle[PlayerIndex] == 0 then --if the player not in a vehicle
+		if playerIsInArea(PlayerIndex, "garage") then --and the player is at a garage
+			execute_command("vdel " .. PlayerIndex) --then park their vehicle
+			PlayerSpawnedVehicles[PlayerIndex] = 0
+		else
+			rprint(PlayerIndex, "You need to be at a garage in order to park your car!")
+		end
+	else --otherwise, let them know that they need to exit the vehicle to park it.
+		rprint(PlayerIndex, "You need to exit the vehicle first!")
+	end
+end
+
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
 	print("\nWriting"..get_var(PlayerIndex, "$name").."'s data to a file.")
 	local hashNumber = get_var(PlayerIndex, "$hash")
@@ -740,23 +806,6 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	end
 end
 
-
-function DriveCommand(PlayerIndex, vehicleToDrive) --Summons a specified vehicle for the player that requests it.
-	if PlayerSpawnedVehicles[PlayerIndex] ~= 1 then --if the player does not have a spawned vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and they are at a valid garage
-			if ownsThisCar(PlayerIndex, vehicleToDrive) == true then --and they own the car they want to spawn
-				Spawn(PlayerIndex, commandargs) --spawn it
-			else --otherwise, let them know that they don't own it.
-				rprint(PlayerIndex, "You do not own this vehicle.")
-			end
-		else --otherwise, let them know that they are not at a valid garage
-			rprint(PlayerIndex, "You need to be at a valid garage location!")
-		end
-	else
-		rprint(PlayerIndex, "You already have a summoned vehicle!")
-	end
-end
-
 function buyGun(PlayerIndex, gunToBuy)
 	if playerIsInArea(PlayerIndex, "gunstore") then
 		if gunToBuy ~= nil then
@@ -910,6 +959,35 @@ function copCommands(PlayerIndex, commandargs)
 		rprint(PlayerIndex, "Invalid cop command was issued!")
 	end
 end
+
+function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
+    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
+    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
+        local tag_array = read_dword(0x40440000)
+        for i=0,read_word(0x4044000C)-1 do
+            local tag = tag_array + i * 0x20
+            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
+                local tag_data = read_dword(tag + 0x14)
+                local mp_info = read_dword(tag_data + 0x164 + 4)
+                for j=0,read_dword(tag_data + 0x164)-1 do
+                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
+                end
+            end
+        end
+    end
+    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
+    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
+        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
+            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
+                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
+            end
+        end
+        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
+    end
+    return true
+end
+
+
 
 function CommandHandler (PlayerIndex,Command,Environment,Password)
     if desync() == false then
@@ -1179,48 +1257,6 @@ function CommandHandler (PlayerIndex,Command,Environment,Password)
 
 end
 
-function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
-    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
-    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
-        local tag_array = read_dword(0x40440000)
-        for i=0,read_word(0x4044000C)-1 do
-            local tag = tag_array + i * 0x20
-            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
-                local tag_data = read_dword(tag + 0x14)
-                local mp_info = read_dword(tag_data + 0x164 + 4)
-                for j=0,read_dword(tag_data + 0x164)-1 do
-                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
-                end
-            end
-        end
-    end
-    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
-    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
-        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
-            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
-                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
-            end
-        end
-        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
-    end
-    return true
-end
-
-
-
-function ParkCommand(PlayerIndex) --Parks a player's vehicle. Will be modified in the future to ONLY park within certain areas.
-	if PlayerIsInAVehicle[PlayerIndex] == 0 then --if the player not in a vehicle
-		if playerIsInArea(PlayerIndex, "garage") then --and the player is at a garage
-			execute_command("vdel " .. PlayerIndex) --then park their vehicle
-			PlayerSpawnedVehicles[PlayerIndex] = 0
-		else
-			rprint(PlayerIndex, "You need to be at a garage in order to park your car!")
-		end
-	else --otherwise, let them know that they need to exit the vehicle to park it.
-		rprint(PlayerIndex, "You need to exit the vehicle first!")
-	end
-end
-
 
 function OnScriptUnload()
 end
@@ -1249,12 +1285,24 @@ end
 
 function OnAreaEnter(PlayerIndex, areaEntered)
 	PlayerAreas[PlayerIndex] = areaEntered
-	rprint(PlayerIndex, "You have entered "..LOCATIONS[areaEntered])
+	local areaObject = LOCATIONS[areaEntered]
+	if areaObject == nil then rprint(PlayerIndex, "You have exited an area! (1)"); return end
+	local areaName = areaObject:getName()
+	local areaType = areaObject:getType()
+	if areaName == nil or areaType == nil then rprint(PlayerIndex, "You exited an area! (2)"); return end
+	local locationToPrint = buildLocationString(areaType, areaName, true)
+	rprint(PlayerIndex, locationToPrint)
 end
 
 function OnAreaExit(PlayerIndex, areaExited)
 	PlayerAreas[PlayerIndex] = ""
-	rprint(PlayerIndex, "You have exited "..LOCATIONS[areaExited])
+	local areaObject = LOCATIONS[areaExited]
+	if areaObject == nil then rprint(PlayerIndex, "You have exited an area! (1)"); return end
+	local areaName = areaObject:getName()
+	local areaType = areaObject:getType()
+	if areaName == nil or areaType == nil then rprint(PlayerIndex, "You exited an area! (2)"); return end
+	local locationToPrint = buildLocationString(areaType, areaName)
+	rprint(PlayerIndex, locationToPrint)
 end
 
 function OnCommand(PlayerIndex,Command,Environment,Password)
