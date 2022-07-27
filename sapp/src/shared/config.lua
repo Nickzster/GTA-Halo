@@ -43,5 +43,6 @@ COMMAND_NAMES = {
     ["pay"] = "pay",
     ["save"] = "save",
     ["buy"] = "buy",
+    ["drop"] = "drop"
 }
 
