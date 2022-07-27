@@ -5,6 +5,8 @@
 function handleLoadoutCommand(playerIndex, commandName, commandArgs)
     if not validateCommand(commandName, "loadout") then return false end
 
+    local localPlayer = ActivePlayers[playerIndex]
+    
     if playerIsInArea(playerIndex, "gunstore") then
         local ownedWeapons = ActivePlayersOwnedWeapons[playerIndex]
         if tonumber(ActivePlayers[playerIndex]:getBucks()) >= LOADOUT_CHANGE_PRICE then
