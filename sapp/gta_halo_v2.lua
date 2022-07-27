@@ -136,9 +136,6 @@ end
 
 -- OLD
 
-freeGun = "remington"
-freeCar = "countach"
-freeMoney = 10000
 MAXBUCKS = 9999999
 MAXKARMA = 2.0
 maxAmmoPrice = 750
@@ -1268,16 +1265,13 @@ function OnCommand(PlayerIndex,Command,Environment,Password)
 end 
 
 function OnError(message)
-	say_all("error was called")
-	for i=0, 16 do
-		if tonumber(get_var(i, "$lvl")) > 1 then -- Gets player admin level
-			rprint(i, message)
-		end
-	end
-	local file = io.open("errors.txt", "a")
-	file:write(message)
-	file:write("\n")
-	file:close()
+	-- say_all("error was called")
+	-- for i=0, 16 do
+	-- 	if tonumber(get_var(i, "$lvl")) > 1 then -- Gets player admin level
+	-- 		rprint(i, message)
+	-- 	end
+	-- end
+	print(message)
 end
 
 function OnGameEnd()
@@ -1330,9 +1324,7 @@ function OnPlayerLeave(PlayerIndex)
 end
 
 function OnSpawn(PlayerIndex)
-	print("*********************OnSpawn called")
 	if ActivePlayers[PlayerIndex]:getPrimaryWeapon() ~= "empty" and ActivePlayers[PlayerIndex]:getSecondaryWeapon() ~= "empty" then
-		print("SETTING GUNS")
 		giveGun(ActivePlayers[PlayerIndex]:getSecondaryWeapon(), PlayerIndex)
 		giveGun(ActivePlayers[PlayerIndex]:getPrimaryWeapon(), PlayerIndex)
 	end

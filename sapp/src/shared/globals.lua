@@ -22,9 +22,6 @@ end
 
 -- OLD
 
-freeGun = "remington"
-freeCar = "countach"
-freeMoney = 10000
 MAXBUCKS = 9999999
 MAXKARMA = 2.0
 maxAmmoPrice = 750
