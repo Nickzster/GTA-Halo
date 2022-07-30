@@ -12,7 +12,7 @@ function handleBuyCommand(playerIndex, commandName, commandArgs)
 
     if VEHICLEPRICES[commandArgs[1]] ~= nil then
         buyVehicle(playerIndex, commandArgs[1])
-    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
+    elseif WEAPONS[commandArgs[1]] ~= nil then
         buyGun(playerIndex, commandArgs[1])
     elseif commandArgs[1] == "ammo" then
         if playerIsInArea(playerIndex, "gunstore") then

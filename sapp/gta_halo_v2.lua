@@ -68,6 +68,51 @@ end
 
 Location['new'] = new
 
+Weapon = {
+    label="",
+    key="",
+    price="",
+    tagReference=""
+}
+
+function Weapon:setLabel(newLabel)
+    self.label = newLabel
+    return self
+end
+
+function Weapon:getLabel()
+    return self.label
+end
+
+function Weapon:setKey(newKey)
+    self.key = newKey
+    return self
+end
+
+function Weapon:getKey()
+    return self.key
+end
+
+function Weapon:setPrice(newPrice)
+    self.price = newPrice
+    return self
+end
+
+function Weapon:getPrice()
+    return self.price
+end
+
+function Weapon:setTagReference(newTagReference)
+    self.tagReference = newTagReference
+    return self
+end
+
+function Weapon:getTagReference()
+    return self.tagReference
+end
+
+Weapon['new'] = new
+
 FREE_GUN_TO_DISTRIBUTE = "remington"
 FREE_CAR_TO_DISTRIBUTE = "countach"
 FREE_MONEY_TO_DISTRIBUTE = 10000
@@ -112,6 +157,31 @@ COMMAND_NAMES = {
     ["wallet"] = "wallet"
 }
 
+WEAPONS = {
+    ["remington"] = Weapon:new():setKey("remington"):setLabel("Remington"):setPrice(800):setTagReference("gta_halo\\weapons\\remington 870\\remington870"),
+    ["m249"]= Weapon:new():setKey("m249"):setLabel("M-249 Machine Gun"):setPrice(5000):setTagReference("gta_halo\\weapons\\m249\\m249saw"),
+    ["mg36"] = Weapon:new():setKey("mg36"):setLabel("MG-36"):setPrice(4000):setTagReference("gta_halo\\weapons\\mg36\\mg36"),
+    ["benelli"] = Weapon:new():setKey("benelli"):setLabel("Benelli"):setPrice(1000):setTagReference("gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun"),
+    ["g36"] = Weapon:new():setKey("g36"):setLabel("G-36"):setPrice(1400):setTagReference("gta_halo\\weapons\\cod4\\weapons\\g36\\g36"),
+    ["m16"] = Weapon:new():setKey("m16"):setLabel("M-16"):setPrice(1500):setTagReference("gta_halo\\weapons\\cod4\\weapons\\m16\\m16"),
+    ["mp5sd"] = Weapon:new():setKey("mp5sd"):setLabel("MP5-SD"):setPrice(1000):setTagReference("gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd"),
+    ["aa12"] = Weapon:new():setKey("aa12"):setLabel("AA-12"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12"),
+    ["as50"] = Weapon:new():setKey("as50"):setLabel("AS-50"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50"),
+    ["g17"] = Weapon:new():setKey("g17"):setLabel("G-17"):setPrice(400):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\g17\\g17"),
+    ["kdw"] = Weapon:new():setKey("kdw"):setLabel("KDW"):setPrice(600):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw"),
+    ["m4"] = Weapon:new():setKey("m4"):setLabel("M-4"):setPrice(1700):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\m4\\m4"),
+    ["mp5k"] = Weapon:new():setKey("mp5k"):setLabel("MP5-K"):setPrice(900):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k"),
+    ["revolver"] = Weapon:new():setKey("revolver"):setLabel("Revolver"):setPrice(1200):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver"),
+    ["ak47"] = Weapon:new():setKey("ak47"):setLabel("AK-47"):setPrice(1600):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\ak47"),
+    ["sniper"] = Weapon:new():setKey("sniper"):setLabel("Sniper Rifle"):setPrice(2500):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\sniper"),
+    ["uzi"] = Weapon:new():setKey("uzi"):setLabel("Uzi"):setPrice(800):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\uzi"),
+    ["m27"] = Weapon:new():setKey("m27"):setLabel("M-27"):setPrice():setTagReference("gta_halo\\weapons\\sideffect\\weapons\\m27\\m27"),
+    ["mrifle"] = Weapon:new():setKey("mrifle"):setLabel("Marksman Rifle"):setPrice(1600):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle"),
+    ["shotgun"] = Weapon:new():setKey("shotgun"):setLabel("Shotgun"):setPrice(1800):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun"),
+    ["smg"] = Weapon:new():setKey("smg"):setLabel("SMG"):setPrice(1100):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\smg\\smg"),
+    ["usp"] = Weapon:new():setKey("usp"):setLabel("USP"):setPrice(600):setTagReference("gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp"),
+    ["m4a1"] = Weapon:new():setKey("m4a1"):setLabel("M4-A1"):setPrice(1400):setTagReference("gta_halo\\weapons\\m4a1\\m4a1")
+}
 
 
 function validateCommand(commandNameToCheck, expectedCommandName)
@@ -157,7 +227,7 @@ function getDistance(index1, index2)
 end
 
 function giveGun(weaponName, PlayerIndex)
-	local gunToGive = spawn_object("weapon", WEAPONS[weaponName])
+	local gunToGive = spawn_object("weapon", WEAPONS[weaponName]:getTagReference())
 	assign_weapon(gunToGive, tonumber(PlayerIndex))
 end
 
@@ -266,56 +336,56 @@ BIPEDS = {
     ["civilians"] = "halo3\\characters\\spartan\\mark v\\mark v",
     ["swat"] = "halo3\\characters\\spartan\\odst\\odst"
 }
-WEAPONS = {
-    ["remington"] = "gta_halo\\weapons\\remington 870\\remington870",
-    ["m249"] = "gta_halo\\weapons\\m249\\m249saw",
-    ["mg36"] = "gta_halo\\weapons\\mg36\\mg36",
-    ["benelli"] = "gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun",
-    ["g36"] = "gta_halo\\weapons\\cod4\\weapons\\g36\\g36",
-    ["m16"] = "gta_halo\\weapons\\cod4\\weapons\\m16\\m16",
-    ["mp5sd"] = "gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd",
-    ["aa12"] = "gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12",
-    ["as50"] = "gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50",
-    ["g17"] = "gta_halo\\weapons\\dsmt\\weapons\\g17\\g17",
-    ["kdw"] = "gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw",
-    ["m4"] = "gta_halo\\weapons\\dsmt\\weapons\\m4\\m4",
-    ["mp5k"] = "gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k",
-    ["revolver"] = "gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver",
-    ["ak47"] = "gta_halo\\deathstar\\ambush\\weapon\\ak47",
-    ["sniper"] = "gta_halo\\deathstar\\ambush\\weapon\\sniper",
-    ["uzi"] = "gta_halo\\deathstar\\ambush\\weapon\\uzi",
-    ["m27"] = "gta_halo\\weapons\\sideffect\\weapons\\m27\\m27",
-    ["mrifle"] = "gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle",
-    ["shotgun"] = "gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun",
-    ["smg"] = "gta_halo\\weapons\\sideffect\\weapons\\smg\\smg",
-    ["usp"] = "gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp",
-    ["m4a1"] = "gta_halo\\weapons\\m4a1\\m4a1"
-}
-WEAPONPRICES = {
-    ["remington"] = 800,
-    ["m249"] = 5000,
-    ["mg36"] = 4000,
-    ["benelli"] = 1000,
-    ["g36"] = 1400,
-    ["m16"] = 1500,
-    ["mp5sd"] = 1000,
-    ["aa12"] = 2000,
-    ["as50"] = 2000,
-    ["g17"] = 400,
-    ["kdw"] = 600,
-    ["m4"] = 1700,
-    ["mp5k"] = 900,
-    ["revolver"] = 1200,
-    ["ak47"] = 1600,
-    ["sniper"] = 2500,
-    ["uzi"] = 800,
-    ["m27"] = 1600,
-    ["mrifle"] = 1800,
-    ["shotgun"] = 900,
-    ["smg"] = 1100,
-    ["usp"] = 600,
-    ["m4a1"] = 1400
-}
+-- WEAPONS = {
+--     ["remington"] = "gta_halo\\weapons\\remington 870\\remington870",
+--     ["m249"] = "gta_halo\\weapons\\m249\\m249saw",
+--     ["mg36"] = "gta_halo\\weapons\\mg36\\mg36",
+--     ["benelli"] = "gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun",
+--     ["g36"] = "gta_halo\\weapons\\cod4\\weapons\\g36\\g36",
+--     ["m16"] = "gta_halo\\weapons\\cod4\\weapons\\m16\\m16",
+--     ["mp5sd"] = "gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd",
+--     ["aa12"] = "gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12",
+--     ["as50"] = "gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50",
+--     ["g17"] = "gta_halo\\weapons\\dsmt\\weapons\\g17\\g17",
+--     ["kdw"] = "gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw",
+--     ["m4"] = "gta_halo\\weapons\\dsmt\\weapons\\m4\\m4",
+--     ["mp5k"] = "gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k",
+--     ["revolver"] = "gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver",
+--     ["ak47"] = "gta_halo\\deathstar\\ambush\\weapon\\ak47",
+--     ["sniper"] = "gta_halo\\deathstar\\ambush\\weapon\\sniper",
+--     ["uzi"] = "gta_halo\\deathstar\\ambush\\weapon\\uzi",
+--     ["m27"] = "gta_halo\\weapons\\sideffect\\weapons\\m27\\m27",
+--     ["mrifle"] = "gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle",
+--     ["shotgun"] = "gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun",
+--     ["smg"] = "gta_halo\\weapons\\sideffect\\weapons\\smg\\smg",
+--     ["usp"] = "gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp",
+--     ["m4a1"] = "gta_halo\\weapons\\m4a1\\m4a1"
+-- }
+-- WEAPONPRICES = {
+--     ["remington"] = 800,
+--     ["m249"] = 5000,
+--     ["mg36"] = 4000,
+--     ["benelli"] = 1000,
+--     ["g36"] = 1400,
+--     ["m16"] = 1500,
+--     ["mp5sd"] = 1000,
+--     ["aa12"] = 2000,
+--     ["as50"] = 2000,
+--     ["g17"] = 400,
+--     ["kdw"] = 600,
+--     ["m4"] = 1700,
+--     ["mp5k"] = 900,
+--     ["revolver"] = 1200,
+--     ["ak47"] = 1600,
+--     ["sniper"] = 2500,
+--     ["uzi"] = 800,
+--     ["m27"] = 1600,
+--     ["mrifle"] = 1800,
+--     ["shotgun"] = 900,
+--     ["smg"] = 1100,
+--     ["usp"] = 600,
+--     ["m4a1"] = 1400
+-- }
 COPCARS = {
     ["tank"] = "tank",
     ["phog"] = "phog",
@@ -592,16 +662,16 @@ function buyGun(PlayerIndex, gunToBuy)
 	if playerIsInArea(PlayerIndex, "gunstore") then
 		if gunToBuy ~= nil then
 			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
+				if WEAPONS[gunToBuy]:getPrice() <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
 					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
 					if updatedWeapons[gunToBuy] == nil then
 						updatedWeapons[gunToBuy] = gunToBuy
 						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
 						rprint(PlayerIndex, "You now own this weapon for loadouts.")
 					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
+					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONS[gunToBuy]:getPrice())
 					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONS[gunToBuy]:getPrice()).." was successful.")
 				else
 					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
 				end
@@ -613,40 +683,6 @@ function buyGun(PlayerIndex, gunToBuy)
 		end
 	else
 		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
-	end
-end
-
-function buyVehicle(PlayerIndex, vehicleToBuy)
-	if playerIsInArea(PlayerIndex, "dealership") then
-		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
-			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
-				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
-					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
-						--then they can buy it
-							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-							if updatedVehicles[vehicleToBuy] == nil then
-								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								updatedVehicles[vehicleToBuy] = vehicleToBuy
-								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
-								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
-								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
-							else
-								rprint(PlayerIndex, "You already own this vehicle!")
-							end
-					else
-						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
-					end
-				else
-					rprint(PlayerIndex, "This vehicle is not for sale.")
-				end
-			else
-				rprint(PlayerIndex, "An invalid vehicle name was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
 	end
 end
 
@@ -828,6 +864,40 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	end
 end
 
+function buyVehicle(PlayerIndex, vehicleToBuy)
+	if playerIsInArea(PlayerIndex, "dealership") then
+		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
+			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
+				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
+					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
+						--then they can buy it
+							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+							if updatedVehicles[vehicleToBuy] == nil then
+								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+								updatedVehicles[vehicleToBuy] = vehicleToBuy
+								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
+								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
+								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
+							else
+								rprint(PlayerIndex, "You already own this vehicle!")
+							end
+					else
+						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
+					end
+				else
+					rprint(PlayerIndex, "This vehicle is not for sale.")
+				end
+			else
+				rprint(PlayerIndex, "An invalid vehicle name was specified!")
+			end
+		else
+			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
+		end
+	else
+		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
+	end
+end
+
 function handlePayCommand(playerIndex, commandName, commandArgs)
 
     if not validateCommand(commandName, 'pay') then return false end
@@ -960,11 +1030,47 @@ end
 
 
 
-function handleDropCommand(playerIndex, commandName, commandArgs)
+function handleCheckCommand(playerIndex, commandName, commandArgs)
+    
+    if not validateCommand(commandName, "check") then return false end
 
-    if not validateCommand(commandName, "drop") then return false end
-
-    drop_weapon(playerIndex)
+    table.remove(commandargs,1)
+				if #commandargs == 0 then
+					rprint(playerIndex, "You need to specify what you want to check!")
+				elseif commandargs[1] == "loadout" then
+					rprint(playerIndex, "Primary Weapon: "..localPlayer:getPrimaryWeapon())
+					rprint(playerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
+				elseif commandargs[1] == "job" then
+					if localPlayer.professionLimit ~= 0 then
+						rprint(playerIndex, "You are a"..localPlayer:getProfession():getTitle())
+					end
+				elseif commandargs[1] == "rank" then
+					local rankNumber = localPlayer:getCopRank()
+					if rankNumber == 0 then
+						rprint(playerIndex, "You are not a cop.")
+					elseif rankNumber == 1 then
+						rprint(playerIndex, "Deputy")
+					elseif rankNumber == 2 then
+						rprint(playerIndex, "Sheriff")
+					end
+				elseif commandargs[1] == "stats" then
+					rprint(playerIndex, "Player Statistics for: "..ActivePlayers[playerIndex]:getName())
+					rprint(playerIndex, "You are a "..ActivePlayers[playerIndex]:getProfession():getTitle())
+					rprint(playerIndex, "You have "..ActivePlayers[playerIndex]:getKarma().." karma points.")
+				elseif commandargs[1] == "all" then
+					rprint(playerIndex, "name: "..ActivePlayers[playerIndex]:getName())
+					rprint(playerIndex, "hash: "..ActivePlayers[playerIndex]:getHash())
+					rprint(playerIndex, "bucks: "..ActivePlayers[playerIndex]:getBucks())
+					rprint(playerIndex, "profession: "..ActivePlayers[playerIndex]:getProfession():getTitle())
+					rprint(playerIndex, "apartment: "..ActivePlayers[playerIndex]:getApartment())
+					rprint(playerIndex, "cop position: "..ActivePlayers[playerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[playerIndex]:getCopPosition()]..")")
+					rprint(playerIndex, "authority: "..ActivePlayers[playerIndex]:getCopAuthority())
+					rprint(playerIndex, "fugitive status: "..ActivePlayers[playerIndex]:getFugitiveStatus())
+					rprint(playerIndex, "karma: "..ActivePlayers[playerIndex]:getKarma())
+					rprint(playerIndex, "primary weapon: "..ActivePlayers[playerIndex]:getPrimaryWeapon())
+					rprint(playerIndex, "secondary weapon: "..ActivePlayers[playerIndex]:getSecondaryWeapon())
+					rprint(playerIndex, "jail status: "..ActivePlayers[playerIndex]:getJailStatus())
+				end
 
     return true
 
@@ -989,6 +1095,29 @@ function handleOwnedCommand(playerIndex, commandName, commandArgs)
 				end
 
     return true
+end
+
+function splitString (inputstr, sep)
+        local t={}
+        if sep == nil then
+            for str in inputstr:gmatch("%w+") do 
+                table.insert(t, str)
+            end
+        else
+            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+            end
+        end
+        return t
+end
+
+function handleShowIDCommand(playerIndex, commandName, commandArgs)
+    if not validateCommand(commandName, "showid") then return false end
+
+    ShowIDFunction(playerIndex)
+    
+    return true
+
 end
 
 function copCommands(PlayerIndex, commandargs)
@@ -1083,72 +1212,6 @@ function copCommands(PlayerIndex, commandargs)
 	end
 end
 
-function handleRedeemCommand(playerIndex, commandName, commandArgs)
-
-    if  not validateCommand(commandName, "redeem") then return false end
-
-    if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
-        table.remove(commandargs,1)
-        local typeOfEvent = commandargs[1]
-        if typeOfEvent ~= nil then
-            if typeOfEvent == "gun" and gunEvent ~= false then
-                if playerIsInArea(playerIndex, "gunstore") then
-                    local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
-                    assign_weapon(gunToGive, playerIndex)
-                    rprint(playerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
-                else
-                    rprint(playerIndex, "You must be at a gun store to redeem this item.")
-                end
-            elseif typeOfEvent == "money" and moneyEvent ~= false then
-                if ClaimedRewards[get_var(playerIndex, "$hash")] == nil then
-                    rprint(playerIndex, "Congratulations. You just earned free money!")
-                    ActivePlayers[playerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
-                    ClaimedRewards[get_var(playerIndex, "$hash")] = get_var(playerIndex, "$hash")
-                else
-                    rprint(playerIndex, "You have already claimed this reward!")
-                end
-            elseif typeOfEvent == "car" and carEvent ~= false then
-                if playerIsInArea(playerIndex, "dealership") then
-                    local updatedVehicles = ActivePlayersOwnedCars[playerIndex]
-                    if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
-                        updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
-                        ActivePlayersOwnedCars[playerIndex] = updatedVehicles
-                        rprint(playerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
-                    else
-                        rprint(playerIndex, "You already own this vehicle!")
-                    end
-                else
-                    rprint(playerIndex, "You must be at a dealership in order to redeem this vehicle.")
-                end
-            else
-                rprint(playerIndex, "You did not specify a correct redemption value, OR")
-                rprint(playerIndex, "That specific event is not activated.")
-            end
-        else
-            rprint(playerIndex, "You did not specify a redemption value!")
-        end
-    else
-        rprint(playerIndex, "There is currently no active freebe events.")
-    end
-
-    return true
-
-end
-
-function splitString (inputstr, sep)
-        local t={}
-        if sep == nil then
-            for str in inputstr:gmatch("%w+") do 
-                table.insert(t, str)
-            end
-        else
-            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
-                table.insert(t, str)
-            end
-        end
-        return t
-end
-
 
 function handleHireCopCommand(playerIndex, commandName, commandArgs)
 
@@ -1205,7 +1268,7 @@ function handleBuyCommand(playerIndex, commandName, commandArgs)
 
     if VEHICLEPRICES[commandArgs[1]] ~= nil then
         buyVehicle(playerIndex, commandArgs[1])
-    elseif WEAPONPRICES[commandArgs[1]] ~= nil then
+    elseif WEAPONS[commandArgs[1]] ~= nil then
         buyGun(playerIndex, commandArgs[1])
     elseif commandArgs[1] == "ammo" then
         if playerIsInArea(playerIndex, "gunstore") then
@@ -1275,11 +1338,93 @@ function handleWalletCommand(playerIndex, commandName, commandArgs)
     return true
 end
 
-function handleShowIDCommand(playerIndex, commandName, commandArgs)
-    if not validateCommand(commandName, "showid") then return false end
+function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
+    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
+    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
+        local tag_array = read_dword(0x40440000)
+        for i=0,read_word(0x4044000C)-1 do
+            local tag = tag_array + i * 0x20
+            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
+                local tag_data = read_dword(tag + 0x14)
+                local mp_info = read_dword(tag_data + 0x164 + 4)
+                for j=0,read_dword(tag_data + 0x164)-1 do
+                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
+                end
+            end
+        end
+    end
+    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
+    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
+        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
+            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
+                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
+            end
+        end
+        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
+    end
+    return true
+end
 
-    ShowIDFunction(playerIndex)
-    
+
+
+function handleRedeemCommand(playerIndex, commandName, commandArgs)
+
+    if  not validateCommand(commandName, "redeem") then return false end
+
+    if gunEvent ~= false or moneyEvent ~= false or carEvent ~= false then
+        table.remove(commandargs,1)
+        local typeOfEvent = commandargs[1]
+        if typeOfEvent ~= nil then
+            if typeOfEvent == "gun" and gunEvent ~= false then
+                if playerIsInArea(playerIndex, "gunstore") then
+                    local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE]:getKey())
+                    assign_weapon(gunToGive, playerIndex)
+                    rprint(playerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
+                else
+                    rprint(playerIndex, "You must be at a gun store to redeem this item.")
+                end
+            elseif typeOfEvent == "money" and moneyEvent ~= false then
+                if ClaimedRewards[get_var(playerIndex, "$hash")] == nil then
+                    rprint(playerIndex, "Congratulations. You just earned free money!")
+                    ActivePlayers[playerIndex]:payBucks(FREE_MONEY_TO_DISTRIBUTE)
+                    ClaimedRewards[get_var(playerIndex, "$hash")] = get_var(playerIndex, "$hash")
+                else
+                    rprint(playerIndex, "You have already claimed this reward!")
+                end
+            elseif typeOfEvent == "car" and carEvent ~= false then
+                if playerIsInArea(playerIndex, "dealership") then
+                    local updatedVehicles = ActivePlayersOwnedCars[playerIndex]
+                    if updatedVehicles[FREE_CAR_TO_DISTRIBUTE] == nil then
+                        updatedVehicles[FREE_CAR_TO_DISTRIBUTE] = FREE_CAR_TO_DISTRIBUTE
+                        ActivePlayersOwnedCars[playerIndex] = updatedVehicles
+                        rprint(playerIndex, "You have successfully redeemed a "..FREE_CAR_TO_DISTRIBUTE.."!")
+                    else
+                        rprint(playerIndex, "You already own this vehicle!")
+                    end
+                else
+                    rprint(playerIndex, "You must be at a dealership in order to redeem this vehicle.")
+                end
+            else
+                rprint(playerIndex, "You did not specify a correct redemption value, OR")
+                rprint(playerIndex, "That specific event is not activated.")
+            end
+        else
+            rprint(playerIndex, "You did not specify a redemption value!")
+        end
+    else
+        rprint(playerIndex, "There is currently no active freebe events.")
+    end
+
+    return true
+
+end
+
+function handleDropCommand(playerIndex, commandName, commandArgs)
+
+    if not validateCommand(commandName, "drop") then return false end
+
+    drop_weapon(playerIndex)
+
     return true
 
 end
@@ -1314,81 +1459,6 @@ function handleActivateEventCommand(playerIndex, commandName, commandArgs)
     else
         rprint(playerIndex, "You cannot activate a redemption event.")
     end
-
-    return true
-
-end
-
-function handleObjectSpawn(PlayerIndex, MapID, ParentID, ObjectID)
-    if(player_present(PlayerIndex) == false) then return true end --if player does not exist, do not execute. otherwise, proceed.
-    if(DEFAULT_BIPED == nil) then --if the default biped is nil, then read into the globals, and grab it out of the globals.
-        local tag_array = read_dword(0x40440000)
-        for i=0,read_word(0x4044000C)-1 do
-            local tag = tag_array + i * 0x20
-            if(read_dword(tag) == 1835103335 and read_string(read_dword(tag + 0x10)) == "globals\\globals") then
-                local tag_data = read_dword(tag + 0x14)
-                local mp_info = read_dword(tag_data + 0x164 + 4)
-                for j=0,read_dword(tag_data + 0x164)-1 do
-                    DEFAULT_BIPED = read_dword(mp_info + j * 160 + 0x10 + 0xC)
-                end
-            end
-        end
-    end
-    local hash = get_var(PlayerIndex,"$hash") --retrieves the player indexes CD hash to use it as an index in the CHOSEN_BIPEDS table.
-    if(MapID == DEFAULT_BIPED and CHOSEN_BIPEDS[hash]) then --if the Tag ID matches the default biped, and the chosen biped matches the hash.
-        for key,value in pairs(BIPEDS) do --(note: key and value represent "i"). Find the biped tag.
-            if(BIPED_IDS[key] == nil) then --if it is found, overwrite.
-                BIPED_IDS[key] = FindBipedTag(BIPEDS[key])
-            end
-        end
-        return true,BIPED_IDS[CHOSEN_BIPEDS[hash]] --and return it. (in case it is not found, it does not get over-written.)
-    end
-    return true
-end
-
-
-
-function handleCheckCommand(playerIndex, commandName, commandArgs)
-    
-    if not validateCommand(commandName, "check") then return false end
-
-    table.remove(commandargs,1)
-				if #commandargs == 0 then
-					rprint(playerIndex, "You need to specify what you want to check!")
-				elseif commandargs[1] == "loadout" then
-					rprint(playerIndex, "Primary Weapon: "..localPlayer:getPrimaryWeapon())
-					rprint(playerIndex, "Secondary Weapon: "..localPlayer:getSecondaryWeapon())
-				elseif commandargs[1] == "job" then
-					if localPlayer.professionLimit ~= 0 then
-						rprint(playerIndex, "You are a"..localPlayer:getProfession():getTitle())
-					end
-				elseif commandargs[1] == "rank" then
-					local rankNumber = localPlayer:getCopRank()
-					if rankNumber == 0 then
-						rprint(playerIndex, "You are not a cop.")
-					elseif rankNumber == 1 then
-						rprint(playerIndex, "Deputy")
-					elseif rankNumber == 2 then
-						rprint(playerIndex, "Sheriff")
-					end
-				elseif commandargs[1] == "stats" then
-					rprint(playerIndex, "Player Statistics for: "..ActivePlayers[playerIndex]:getName())
-					rprint(playerIndex, "You are a "..ActivePlayers[playerIndex]:getProfession():getTitle())
-					rprint(playerIndex, "You have "..ActivePlayers[playerIndex]:getKarma().." karma points.")
-				elseif commandargs[1] == "all" then
-					rprint(playerIndex, "name: "..ActivePlayers[playerIndex]:getName())
-					rprint(playerIndex, "hash: "..ActivePlayers[playerIndex]:getHash())
-					rprint(playerIndex, "bucks: "..ActivePlayers[playerIndex]:getBucks())
-					rprint(playerIndex, "profession: "..ActivePlayers[playerIndex]:getProfession():getTitle())
-					rprint(playerIndex, "apartment: "..ActivePlayers[playerIndex]:getApartment())
-					rprint(playerIndex, "cop position: "..ActivePlayers[playerIndex]:getCopPosition().." ("..COPPOSITIONS[ActivePlayers[playerIndex]:getCopPosition()]..")")
-					rprint(playerIndex, "authority: "..ActivePlayers[playerIndex]:getCopAuthority())
-					rprint(playerIndex, "fugitive status: "..ActivePlayers[playerIndex]:getFugitiveStatus())
-					rprint(playerIndex, "karma: "..ActivePlayers[playerIndex]:getKarma())
-					rprint(playerIndex, "primary weapon: "..ActivePlayers[playerIndex]:getPrimaryWeapon())
-					rprint(playerIndex, "secondary weapon: "..ActivePlayers[playerIndex]:getSecondaryWeapon())
-					rprint(playerIndex, "jail status: "..ActivePlayers[playerIndex]:getJailStatus())
-				end
 
     return true
 

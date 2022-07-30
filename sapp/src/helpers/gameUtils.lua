@@ -18,7 +18,7 @@ function getDistance(index1, index2)
 end
 
 function giveGun(weaponName, PlayerIndex)
-	local gunToGive = spawn_object("weapon", WEAPONS[weaponName])
+	local gunToGive = spawn_object("weapon", WEAPONS[weaponName]:getTagReference())
 	assign_weapon(gunToGive, tonumber(PlayerIndex))
 end
 

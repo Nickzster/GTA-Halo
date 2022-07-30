@@ -12,7 +12,7 @@ function handleRedeemCommand(playerIndex, commandName, commandArgs)
         if typeOfEvent ~= nil then
             if typeOfEvent == "gun" and gunEvent ~= false then
                 if playerIsInArea(playerIndex, "gunstore") then
-                    local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE])
+                    local gunToGive = spawn_object("weapon", WEAPONS[FREE_GUN_TO_DISTRIBUTE]:getKey())
                     assign_weapon(gunToGive, playerIndex)
                     rprint(playerIndex, "You have successfully redeemed a "..FREE_GUN_TO_DISTRIBUTE.."!")
                 else

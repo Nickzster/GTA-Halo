@@ -7,16 +7,16 @@ function buyGun(PlayerIndex, gunToBuy)
 	if playerIsInArea(PlayerIndex, "gunstore") then
 		if gunToBuy ~= nil then
 			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONPRICES[gunToBuy] <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
+				if WEAPONS[gunToBuy]:getPrice() <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
 					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
 					if updatedWeapons[gunToBuy] == nil then
 						updatedWeapons[gunToBuy] = gunToBuy
 						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
 						rprint(PlayerIndex, "You now own this weapon for loadouts.")
 					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONPRICES[gunToBuy])
+					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONS[gunToBuy]:getPrice())
 					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONPRICES[gunToBuy]).." was successful.")
+					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONS[gunToBuy]:getPrice()).." was successful.")
 				else
 					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
 				end
