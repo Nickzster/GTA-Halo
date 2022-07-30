@@ -45,7 +45,8 @@ COMMAND_NAMES = {
     ["save"] = "save",
     ["buy"] = "buy",
     ["drop"] = "drop",
-    ["wallet"] = "wallet"
+    ["wallet"] = "wallet",
+    ["test"] = "test"
 }
 
 WEAPONS = {

@@ -17,6 +17,7 @@
 -- import core.commands.handleWalletCommand end
 -- import core.commands.handleLoadoutCommand end
 -- import core.commands.handleOwnedCommand end
+-- import core.commands.handleTestCommand end
 -- import helpers.serverUtils end
 -- import shared.config end
 -- import helpers.String end
@@ -45,6 +46,7 @@ function CommandHandler (playerIndex,Command,Environment,Password)
 		if handleWalletCommand(playerIndex, commandName, commandArgs) then return false end 
 		if handleLoadoutCommand(playerIndex, commandName, commandArgs) then return false end
 		if handleOwnedCommand(playerIndex, commandName, commandArgs) then return false end
+		if handleTestCommand(playerIndex, commandName, commandArgs) then return false end
 	end
 	return true
 end

@@ -60,5 +60,17 @@ PlayerAreas = {} --List of all of the player's that are in key areas (stores, et
 timeToReward = 30 * 60 * 30
 waitingToReward = 0
 needToResetGame = false
---end of dynamic tables
---end of Startup stuff
+
+-- EventLoopTable = {
+--     events={}
+--     iterateEventLoopTable=function(self)
+--         for i, event in ipairs(self.events) do
+--             if event:execute() then
+--                 table.remove(self.events, i)
+--             end
+--         end
+--     end,
+--     registerEvent=function(self, event )
+--         table.insert(self.events, event)
+--     end,
+-- }
