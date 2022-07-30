@@ -68,50 +68,50 @@ end
 
 Location['new'] = new
 
-Weapon = {
+Item = {
     label="",
     key="",
     price="",
     tagReference=""
 }
 
-function Weapon:setLabel(newLabel)
+function Item:setLabel(newLabel)
     self.label = newLabel
     return self
 end
 
-function Weapon:getLabel()
+function Item:getLabel()
     return self.label
 end
 
-function Weapon:setKey(newKey)
+function Item:setKey(newKey)
     self.key = newKey
     return self
 end
 
-function Weapon:getKey()
+function Item:getKey()
     return self.key
 end
 
-function Weapon:setPrice(newPrice)
+function Item:setPrice(newPrice)
     self.price = newPrice
     return self
 end
 
-function Weapon:getPrice()
+function Item:getPrice()
     return self.price
 end
 
-function Weapon:setTagReference(newTagReference)
+function Item:setTagReference(newTagReference)
     self.tagReference = newTagReference
     return self
 end
 
-function Weapon:getTagReference()
+function Item:getTagReference()
     return self.tagReference
 end
 
-Weapon['new'] = new
+Item['new'] = new
 
 FREE_GUN_TO_DISTRIBUTE = "remington"
 FREE_CAR_TO_DISTRIBUTE = "countach"
@@ -158,29 +158,62 @@ COMMAND_NAMES = {
 }
 
 WEAPONS = {
-    ["remington"] = Weapon:new():setKey("remington"):setLabel("Remington"):setPrice(800):setTagReference("gta_halo\\weapons\\remington 870\\remington870"),
-    ["m249"]= Weapon:new():setKey("m249"):setLabel("M-249 Machine Gun"):setPrice(5000):setTagReference("gta_halo\\weapons\\m249\\m249saw"),
-    ["mg36"] = Weapon:new():setKey("mg36"):setLabel("MG-36"):setPrice(4000):setTagReference("gta_halo\\weapons\\mg36\\mg36"),
-    ["benelli"] = Weapon:new():setKey("benelli"):setLabel("Benelli"):setPrice(1000):setTagReference("gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun"),
-    ["g36"] = Weapon:new():setKey("g36"):setLabel("G-36"):setPrice(1400):setTagReference("gta_halo\\weapons\\cod4\\weapons\\g36\\g36"),
-    ["m16"] = Weapon:new():setKey("m16"):setLabel("M-16"):setPrice(1500):setTagReference("gta_halo\\weapons\\cod4\\weapons\\m16\\m16"),
-    ["mp5sd"] = Weapon:new():setKey("mp5sd"):setLabel("MP5-SD"):setPrice(1000):setTagReference("gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd"),
-    ["aa12"] = Weapon:new():setKey("aa12"):setLabel("AA-12"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12"),
-    ["as50"] = Weapon:new():setKey("as50"):setLabel("AS-50"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50"),
-    ["g17"] = Weapon:new():setKey("g17"):setLabel("G-17"):setPrice(400):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\g17\\g17"),
-    ["kdw"] = Weapon:new():setKey("kdw"):setLabel("KDW"):setPrice(600):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw"),
-    ["m4"] = Weapon:new():setKey("m4"):setLabel("M-4"):setPrice(1700):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\m4\\m4"),
-    ["mp5k"] = Weapon:new():setKey("mp5k"):setLabel("MP5-K"):setPrice(900):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k"),
-    ["revolver"] = Weapon:new():setKey("revolver"):setLabel("Revolver"):setPrice(1200):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver"),
-    ["ak47"] = Weapon:new():setKey("ak47"):setLabel("AK-47"):setPrice(1600):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\ak47"),
-    ["sniper"] = Weapon:new():setKey("sniper"):setLabel("Sniper Rifle"):setPrice(2500):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\sniper"),
-    ["uzi"] = Weapon:new():setKey("uzi"):setLabel("Uzi"):setPrice(800):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\uzi"),
-    ["m27"] = Weapon:new():setKey("m27"):setLabel("M-27"):setPrice():setTagReference("gta_halo\\weapons\\sideffect\\weapons\\m27\\m27"),
-    ["mrifle"] = Weapon:new():setKey("mrifle"):setLabel("Marksman Rifle"):setPrice(1600):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle"),
-    ["shotgun"] = Weapon:new():setKey("shotgun"):setLabel("Shotgun"):setPrice(1800):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun"),
-    ["smg"] = Weapon:new():setKey("smg"):setLabel("SMG"):setPrice(1100):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\smg\\smg"),
-    ["usp"] = Weapon:new():setKey("usp"):setLabel("USP"):setPrice(600):setTagReference("gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp"),
-    ["m4a1"] = Weapon:new():setKey("m4a1"):setLabel("M4-A1"):setPrice(1400):setTagReference("gta_halo\\weapons\\m4a1\\m4a1")
+    ["remington"] = Item:new():setKey("remington"):setLabel("Remington"):setPrice(800):setTagReference("gta_halo\\weapons\\remington 870\\remington870"),
+    ["m249"]= Item:new():setKey("m249"):setLabel("M-249 Machine Gun"):setPrice(5000):setTagReference("gta_halo\\weapons\\m249\\m249saw"),
+    ["mg36"] = Item:new():setKey("mg36"):setLabel("MG-36"):setPrice(4000):setTagReference("gta_halo\\weapons\\mg36\\mg36"),
+    ["benelli"] = Item:new():setKey("benelli"):setLabel("Benelli"):setPrice(1000):setTagReference("gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun"),
+    ["g36"] = Item:new():setKey("g36"):setLabel("G-36"):setPrice(1400):setTagReference("gta_halo\\weapons\\cod4\\weapons\\g36\\g36"),
+    ["m16"] = Item:new():setKey("m16"):setLabel("M-16"):setPrice(1500):setTagReference("gta_halo\\weapons\\cod4\\weapons\\m16\\m16"),
+    ["mp5sd"] = Item:new():setKey("mp5sd"):setLabel("MP5-SD"):setPrice(1000):setTagReference("gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd"),
+    ["aa12"] = Item:new():setKey("aa12"):setLabel("AA-12"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12"),
+    ["as50"] = Item:new():setKey("as50"):setLabel("AS-50"):setPrice(2000):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50"),
+    ["g17"] = Item:new():setKey("g17"):setLabel("G-17"):setPrice(400):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\g17\\g17"),
+    ["kdw"] = Item:new():setKey("kdw"):setLabel("KDW"):setPrice(600):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw"),
+    ["m4"] = Item:new():setKey("m4"):setLabel("M-4"):setPrice(1700):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\m4\\m4"),
+    ["mp5k"] = Item:new():setKey("mp5k"):setLabel("MP5-K"):setPrice(900):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k"),
+    ["revolver"] = Item:new():setKey("revolver"):setLabel("Revolver"):setPrice(1200):setTagReference("gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver"),
+    ["ak47"] = Item:new():setKey("ak47"):setLabel("AK-47"):setPrice(1600):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\ak47"),
+    ["sniper"] = Item:new():setKey("sniper"):setLabel("Sniper Rifle"):setPrice(2500):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\sniper"),
+    ["uzi"] = Item:new():setKey("uzi"):setLabel("Uzi"):setPrice(800):setTagReference("gta_halo\\deathstar\\ambush\\weapon\\uzi"),
+    ["m27"] = Item:new():setKey("m27"):setLabel("M-27"):setPrice():setTagReference("gta_halo\\weapons\\sideffect\\weapons\\m27\\m27"),
+    ["mrifle"] = Item:new():setKey("mrifle"):setLabel("Marksman Rifle"):setPrice(1600):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle"),
+    ["shotgun"] = Item:new():setKey("shotgun"):setLabel("Shotgun"):setPrice(1800):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun"),
+    ["smg"] = Item:new():setKey("smg"):setLabel("SMG"):setPrice(1100):setTagReference("gta_halo\\weapons\\sideffect\\weapons\\smg\\smg"),
+    ["usp"] = Item:new():setKey("usp"):setLabel("USP"):setPrice(600):setTagReference("gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp"),
+    ["m4a1"] = Item:new():setKey("m4a1"):setLabel("M4-A1"):setPrice(1400):setTagReference("gta_halo\\weapons\\m4a1\\m4a1")
+}
+
+
+VEHICLES={
+    ["911"] = Item:new():setKey("911"):setLabel(""):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\porsche"),
+    ["aventador"] = Item:new():setKey("aventador"):setLabel("Lamborghini Aventador"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\aventador"),
+    ["ccx"]  = Item:new():setKey("ccx"):setLabel("Koenigsegg CCX"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\ccx"),
+    ["charger"] = Item:new():setKey("charger"):setLabel("Dodge Charger"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\charger"),
+    ["murcielago"] = Item:new():setKey("murcielago"):setLabel("Lamborghini Murcielago"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\lp640"),
+    ["reventon"] = Item:new():setKey("reventon"):setLabel("Lamborghini Reventon"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\reventon"),
+    ["rx7"] = Item:new():setKey("rx7"):setLabel("Mazda RX7"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\rx"),
+    ["veyron"] = Item:new():setKey("veyron"):setLabel("Bugatti Veyron"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_ff\\veyron"),
+    ["zonda"] = Item:new():setKey("zonda"):setLabel("Pagani Zonda"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\zonda\\zonda"),
+    ["gtr"] = Item:new():setKey("gtr"):setLabel("Nissian GTR"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\gtr\\gtr"),
+    ["countach"] = Item:new():setKey("countach"):setLabel("Lamborghini Countach"):setPrice(1000):setTagReference("altis\\crashday\\judge\\judge"),
+    ["towtruck"] = Item:new():setKey("towtruck"):setLabel("Junkyard Dog"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_v2\\junkyarddog\\junkyarddog"),
+	["crimsonfury"] = Item:new():setKey("crimsonfury"):setLabel("Crimson Fury"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_v2\\crimsonfury\\crimsonfury"),
+	["interceptor"] = Item:new():setKey("interceptor"):setLabel("Interceptor"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\interceptor\\interceptor"),
+	["policeferrari"] = Item:new():setKey("policeferrari"):setLabel("Ferrari (Police)"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\police_ferrari\\police_ferrari"),
+	["glendalemonster"] = Item:new():setKey("glendalemonster"):setLabel("Glendale (Monster)"):setPrice(1000):setTagReference("vehicles\\glendalemonster\\glendalemonster"),
+    ["compact"] = Item:new():setKey("compact"):setLabel("Compact"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_v2\\crazy8\\crazy8"),
+    ["cwarthog"] = Item:new():setKey("cwarthog"):setLabel("Civilian Warthog"):setPrice(1000):setTagReference("vehicles\\yohog\\yohog"),
+    ["bfinjection"] = Item:new():setKey("bfinjection"):setLabel("BF Injection"):setPrice(1000):setTagReference("vehicles\\bfinjection\\bfinjection"),
+    ["cleaver"] = Item:new():setKey("cleaver"):setLabel("Cleaver"):setPrice(1000):setTagReference("vehicles\\cleaver\\cleaver"),
+    ["clover"] = Item:new():setKey("clover"):setLabel("Clover"):setPrice(1000):setTagReference("vehicles\\clover\\clover"),
+    ["glendale"] = Item:new():setKey("glendale"):setLabel("Glendale"):setPrice(1000):setTagReference("vehicles\\glendale\\glendale"),
+    ["sabre"] = Item:new():setKey("sabre"):setLabel("Sabre"):setPrice(1000):setTagReference("vehicles\\sabre\\sabre"),
+    ["tornado"] = Item:new():setKey("tornado"):setLabel("Tornado"):setPrice(1000):setTagReference("vehicles\\tornado\\tornado"),
+    ["virgo"] = Item:new():setKey("virgo"):setLabel("Virgo"):setPrice(1000):setTagReference("vehicles\\virgo\\virgo"),
+    ["challenger"] = Item:new():setKey("challenger"):setLabel("Dodge Challenger"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\challenger\\challenger"),
+    ["veneno"] = Item:new():setKey("veneno"):setLabel("Lamborghini Veneno"):setPrice(1000):setTagReference("twisted_metal\\vehicles\\_v3\\veneno_low_poly\\veneno"),
+    ["vincent"] = Item:new():setKey("vincent"):setLabel("Vincent"):setPrice(1000):setTagReference("altis\\vehicles\\vincent\\vincent"),
+	["katyusha"] = Item:new():setKey("katyusha"):setLabel("Katyusha"):setPrice(1000):setTagReference("altis\\vehicles\\truck_katyusha\\truck_katyusha")
 }
 
 
@@ -282,7 +315,7 @@ function vehicleSpawn(PlayerIndex, name, vehicleClass) --utility function for Sp
 	PlayerIndex = tonumber(PlayerIndex)
 	if player_present(PlayerIndex) then
 			execute_command("m "..PlayerIndex.." 0 0 0.4")
-			execute_command("spawn vehi "..VEHICLES[name].." "..PlayerIndex)
+			execute_command("spawn vehi "..VEHICLES[name]:getTagReference().." "..PlayerIndex)
 			execute_command("venter "..PlayerIndex)
 	end
 end
@@ -342,69 +375,69 @@ COPCARS = {
     ["phog"] = "phog",
     ["pferrari"] = "pferrari"
 }
-VEHICLES = {
-    ["911"] = "twisted_metal\\vehicles\\_ff\\porsche",
-    ["aventador"] = "twisted_metal\\vehicles\\_ff\\aventador",
-    ["ccx"]  = "twisted_metal\\vehicles\\_ff\\ccx",
-    ["charger"] = "twisted_metal\\vehicles\\_ff\\charger",
-    ["murcielago"] = "twisted_metal\\vehicles\\_ff\\lp640",
-    ["reventon"] = "twisted_metal\\vehicles\\_ff\\reventon",
-    ["rx7"] = "twisted_metal\\vehicles\\_ff\\rx",
-    ["veyron"] = "twisted_metal\\vehicles\\_ff\\veyron",
-    ["zonda"] = "twisted_metal\\vehicles\\zonda\\zonda",
-    ["gtr"] = "twisted_metal\\vehicles\\gtr\\gtr",
-    ["countach"] = "altis\\crashday\\judge\\judge",
-    ["towtruck"] = "twisted_metal\\vehicles\\_v2\\junkyarddog\\junkyarddog",
-	["crimsonfury"] = "twisted_metal\\vehicles\\_v2\\crimsonfury\\crimsonfury",
-	["interceptor"] = "twisted_metal\\vehicles\\interceptor\\interceptor",
-	["policeferrari"] = "twisted_metal\\vehicles\\police_ferrari\\police_ferrari",
-	["glendalemonster"] = "vehicles\\glendalemonster\\glendalemonster",
-    ["compact"] = "twisted_metal\\vehicles\\_v2\\crazy8\\crazy8",
-    ["cwarthog"] = "vehicles\\yohog\\yohog",
-    ["bfinjection"] = "vehicles\\bfinjection\\bfinjection",
-    ["cleaver"] = "vehicles\\cleaver\\cleaver",
-    ["clover"] = "vehicles\\clover\\clover",
-    ["glendale"] = "vehicles\\glendale\\glendale",
-    ["sabre"] = "vehicles\\sabre\\sabre",
-    ["tornado"] = "vehicles\\tornado\\tornado",
-    ["virgo"] = "vehicles\\virgo\\virgo",
-    ["challenger"] = "twisted_metal\\vehicles\\challenger\\challenger",
-    ["veneno"] = "twisted_metal\\vehicles\\_v3\\veneno_low_poly\\veneno",
-    ["vincent"] = "altis\\vehicles\\vincent\\vincent",
-	["katyusha"] = "altis\\vehicles\\truck_katyusha\\truck_katyusha"
+-- VEHICLES = {
+--     ["911"] = "twisted_metal\\vehicles\\_ff\\porsche",
+--     ["aventador"] = "twisted_metal\\vehicles\\_ff\\aventador",
+--     ["ccx"]  = "twisted_metal\\vehicles\\_ff\\ccx",
+--     ["charger"] = "twisted_metal\\vehicles\\_ff\\charger",
+--     ["murcielago"] = "twisted_metal\\vehicles\\_ff\\lp640",
+--     ["reventon"] = "twisted_metal\\vehicles\\_ff\\reventon",
+--     ["rx7"] = "twisted_metal\\vehicles\\_ff\\rx",
+--     ["veyron"] = "twisted_metal\\vehicles\\_ff\\veyron",
+--     ["zonda"] = "twisted_metal\\vehicles\\zonda\\zonda",
+--     ["gtr"] = "twisted_metal\\vehicles\\gtr\\gtr",
+--     ["countach"] = "altis\\crashday\\judge\\judge",
+--     ["towtruck"] = "twisted_metal\\vehicles\\_v2\\junkyarddog\\junkyarddog",
+-- 	["crimsonfury"] = "twisted_metal\\vehicles\\_v2\\crimsonfury\\crimsonfury",
+-- 	["interceptor"] = "twisted_metal\\vehicles\\interceptor\\interceptor",
+-- 	["policeferrari"] = "twisted_metal\\vehicles\\police_ferrari\\police_ferrari",
+-- 	["glendalemonster"] = "vehicles\\glendalemonster\\glendalemonster",
+--     ["compact"] = "twisted_metal\\vehicles\\_v2\\crazy8\\crazy8",
+--     ["cwarthog"] = "vehicles\\yohog\\yohog",
+--     ["bfinjection"] = "vehicles\\bfinjection\\bfinjection",
+--     ["cleaver"] = "vehicles\\cleaver\\cleaver",
+--     ["clover"] = "vehicles\\clover\\clover",
+--     ["glendale"] = "vehicles\\glendale\\glendale",
+--     ["sabre"] = "vehicles\\sabre\\sabre",
+--     ["tornado"] = "vehicles\\tornado\\tornado",
+--     ["virgo"] = "vehicles\\virgo\\virgo",
+--     ["challenger"] = "twisted_metal\\vehicles\\challenger\\challenger",
+--     ["veneno"] = "twisted_metal\\vehicles\\_v3\\veneno_low_poly\\veneno",
+--     ["vincent"] = "altis\\vehicles\\vincent\\vincent",
+-- 	["katyusha"] = "altis\\vehicles\\truck_katyusha\\truck_katyusha"
      
-}
-VEHICLEPRICES = { 
-    ["911"] = 1000,
-    ["aventador"] = 1000,
-    ["ccx"]  = 1000,
-    ["charger"] = 1000,
-    ["murcielago"] = 1000,
-    ["reventon"] = 1000,
-    ["rx7"] = 1000,
-    ["veyron"] = 1000,
-    ["zonda"] = 1000,
-    ["gtr"] = 1000,
-    ["countach"] = 1000,
-    ["towtruck"] = 1000,
-    ["compact"] = 1000,
-    ["cwarthog"] = 1000,
-    ["bfinjection"] = 1000,
-    ["cleaver"] = 1000,
-    ["clover"] = 1000,
-    ["glendale"] = 1000,
-    ["sabre"] = 1000,
-    ["tornado"] = 1000,
-    ["virgo"] = 1000,
-    ["challenger"] = 1000,
-    ["veneno"] = 1000,
-    ["vincent"] = 1000,
-	["crimsonfury"] = 1000,
-	["interceptor"] = 1000,
-	["policeferrari"] = 1000,
-	["glendalemonster"] = 1000,
-	["katyusha"] = 1000
-}
+-- }
+-- VEHICLEPRICES = { 
+--     ["911"] = 1000,
+--     ["aventador"] = 1000,
+--     ["ccx"]  = 1000,
+--     ["charger"] = 1000,
+--     ["murcielago"] = 1000,
+--     ["reventon"] = 1000,
+--     ["rx7"] = 1000,
+--     ["veyron"] = 1000,
+--     ["zonda"] = 1000,
+--     ["gtr"] = 1000,
+--     ["countach"] = 1000,
+--     ["towtruck"] = 1000,
+--     ["compact"] = 1000,
+--     ["cwarthog"] = 1000,
+--     ["bfinjection"] = 1000,
+--     ["cleaver"] = 1000,
+--     ["clover"] = 1000,
+--     ["glendale"] = 1000,
+--     ["sabre"] = 1000,
+--     ["tornado"] = 1000,
+--     ["virgo"] = 1000,
+--     ["challenger"] = 1000,
+--     ["veneno"] = 1000,
+--     ["vincent"] = 1000,
+-- 	["crimsonfury"] = 1000,
+-- 	["interceptor"] = 1000,
+-- 	["policeferrari"] = 1000,
+-- 	["glendalemonster"] = 1000,
+-- 	["katyusha"] = 1000
+-- }
 --CREDIT: 002 and Altis for switching bipeds
 BIPED_IDS = {}
 CHOSEN_BIPEDS = {}
@@ -811,37 +844,28 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 end
 
 function buyVehicle(PlayerIndex, vehicleToBuy)
-	if playerIsInArea(PlayerIndex, "dealership") then
-		if vehicleToBuy ~= nil then --if the vehicle was correctly specified
-			if VEHICLES[vehicleToBuy] ~= nil then --and it exists
-				if VEHICLEPRICES[vehicleToBuy] ~= nil then --and it is for sale
-					if VEHICLEPRICES[vehicleToBuy] <= tonumber(ActivePlayers[PlayerIndex].getBucks(ActivePlayers[PlayerIndex])) then --and the player has enough money
-						--then they can buy it
-							local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-							if updatedVehicles[vehicleToBuy] == nil then
-								updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
-								updatedVehicles[vehicleToBuy] = vehicleToBuy
-								ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
-								ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLEPRICES[vehicleToBuy])
-								rprint(PlayerIndex, "Purchase of "..vehicleToBuy.." for "..niceMoneyDisplay(VEHICLEPRICES[vehicleToBuy]).." was successful.")
-							else
-								rprint(PlayerIndex, "You already own this vehicle!")
-							end
-					else
-						rprint(PlayerIndex, "You do not have enough bucks to buy this vehicle!")
-					end
-				else
-					rprint(PlayerIndex, "This vehicle is not for sale.")
-				end
-			else
-				rprint(PlayerIndex, "An invalid vehicle name was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a dealership to buy a vehicle!")
+
+	if not playerIsInArea(PlayerIndex, "dealership") then rprint(PlayerIndex, "You need to be at a vehicle store in order to buy vehicles!"); return; end
+
+	if vehicleToBuy == nil then rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!"); return; end
+
+	if VEHICLES[vehicleToBuy] == nil then rprint(PlayerIndex, "An invalid vehicle was specified!"); return; end
+
+	if VEHICLES[vehicleToBuy]:getPrice() > tonumber(ActivePlayers[PlayerIndex]:getBucks()) then rprint(PlayerIndex, "You do not have enough money to buy this vehicle!"); return; end
+
+	local updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+
+	if updatedVehicles[vehicleToBuy] == nil then
+		updatedVehicles = ActivePlayersOwnedCars[PlayerIndex]
+		updatedVehicles[vehicleToBuy] = vehicleToBuy
+		ActivePlayersOwnedCars[PlayerIndex] = updatedVehicles						
+		ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], VEHICLES[vehicleToBuy]:getPrice())
+		rprint(PlayerIndex, "Purchase of "..VEHICLES[vehicleToBuy]:getLabel().." for "..niceMoneyDisplay(VEHICLES[vehicleToBuy]:getPrice()).." was successful.")
+	else 
+		rprint(PlayerIndex, "You already own this vehicle!")
 	end
+
+	
 end
 
 function handlePayCommand(playerIndex, commandName, commandArgs)
@@ -1212,7 +1236,7 @@ function handleBuyCommand(playerIndex, commandName, commandArgs)
 
     local localPlayer = ActivePlayers[playerIndex]
 
-    if VEHICLEPRICES[commandArgs[1]] ~= nil then
+    if VEHICLES[commandArgs[1]] ~= nil then
         buyVehicle(playerIndex, commandArgs[1])
     elseif WEAPONS[commandArgs[1]] ~= nil then
         buyGun(playerIndex, commandArgs[1])

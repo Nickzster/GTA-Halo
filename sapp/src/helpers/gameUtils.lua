@@ -73,7 +73,7 @@ function vehicleSpawn(PlayerIndex, name, vehicleClass) --utility function for Sp
 	PlayerIndex = tonumber(PlayerIndex)
 	if player_present(PlayerIndex) then
 			execute_command("m "..PlayerIndex.." 0 0 0.4")
-			execute_command("spawn vehi "..VEHICLES[name].." "..PlayerIndex)
+			execute_command("spawn vehi "..VEHICLES[name]:getTagReference().." "..PlayerIndex)
 			execute_command("venter "..PlayerIndex)
 	end
 end

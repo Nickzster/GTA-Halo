@@ -10,7 +10,7 @@ function handleBuyCommand(playerIndex, commandName, commandArgs)
 
     local localPlayer = ActivePlayers[playerIndex]
 
-    if VEHICLEPRICES[commandArgs[1]] ~= nil then
+    if VEHICLES[commandArgs[1]] ~= nil then
         buyVehicle(playerIndex, commandArgs[1])
     elseif WEAPONS[commandArgs[1]] ~= nil then
         buyGun(playerIndex, commandArgs[1])
