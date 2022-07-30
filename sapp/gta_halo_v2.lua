@@ -336,56 +336,7 @@ BIPEDS = {
     ["civilians"] = "halo3\\characters\\spartan\\mark v\\mark v",
     ["swat"] = "halo3\\characters\\spartan\\odst\\odst"
 }
--- WEAPONS = {
---     ["remington"] = "gta_halo\\weapons\\remington 870\\remington870",
---     ["m249"] = "gta_halo\\weapons\\m249\\m249saw",
---     ["mg36"] = "gta_halo\\weapons\\mg36\\mg36",
---     ["benelli"] = "gta_halo\\weapons\\benelli_shotgun\\benelli_shotgun",
---     ["g36"] = "gta_halo\\weapons\\cod4\\weapons\\g36\\g36",
---     ["m16"] = "gta_halo\\weapons\\cod4\\weapons\\m16\\m16",
---     ["mp5sd"] = "gta_halo\\weapons\\cod4\\weapons\\mp5\\mp5sd",
---     ["aa12"] = "gta_halo\\weapons\\dsmt\\weapons\\aa12\\aa12",
---     ["as50"] = "gta_halo\\weapons\\dsmt\\weapons\\as-50\\as-50",
---     ["g17"] = "gta_halo\\weapons\\dsmt\\weapons\\g17\\g17",
---     ["kdw"] = "gta_halo\\weapons\\dsmt\\weapons\\kdw\\gta_kdw",
---     ["m4"] = "gta_halo\\weapons\\dsmt\\weapons\\m4\\m4",
---     ["mp5k"] = "gta_halo\\weapons\\dsmt\\weapons\\mp5k\\mp5k",
---     ["revolver"] = "gta_halo\\weapons\\dsmt\\weapons\\mr96\\mr96revolver",
---     ["ak47"] = "gta_halo\\deathstar\\ambush\\weapon\\ak47",
---     ["sniper"] = "gta_halo\\deathstar\\ambush\\weapon\\sniper",
---     ["uzi"] = "gta_halo\\deathstar\\ambush\\weapon\\uzi",
---     ["m27"] = "gta_halo\\weapons\\sideffect\\weapons\\m27\\m27",
---     ["mrifle"] = "gta_halo\\weapons\\sideffect\\weapons\\marksman_rifle\\marksman_rifle",
---     ["shotgun"] = "gta_halo\\weapons\\sideffect\\weapons\\shotgun\\shotgun",
---     ["smg"] = "gta_halo\\weapons\\sideffect\\weapons\\smg\\smg",
---     ["usp"] = "gta_halo\\weapons\\mw\\weapons\\hk-usp\\mw2-usp",
---     ["m4a1"] = "gta_halo\\weapons\\m4a1\\m4a1"
--- }
--- WEAPONPRICES = {
---     ["remington"] = 800,
---     ["m249"] = 5000,
---     ["mg36"] = 4000,
---     ["benelli"] = 1000,
---     ["g36"] = 1400,
---     ["m16"] = 1500,
---     ["mp5sd"] = 1000,
---     ["aa12"] = 2000,
---     ["as50"] = 2000,
---     ["g17"] = 400,
---     ["kdw"] = 600,
---     ["m4"] = 1700,
---     ["mp5k"] = 900,
---     ["revolver"] = 1200,
---     ["ak47"] = 1600,
---     ["sniper"] = 2500,
---     ["uzi"] = 800,
---     ["m27"] = 1600,
---     ["mrifle"] = 1800,
---     ["shotgun"] = 900,
---     ["smg"] = 1100,
---     ["usp"] = 600,
---     ["m4a1"] = 1400
--- }
+
 COPCARS = {
     ["tank"] = "tank",
     ["phog"] = "phog",
@@ -659,31 +610,26 @@ function Inventory:new(o)
 end
 
 function buyGun(PlayerIndex, gunToBuy)
-	if playerIsInArea(PlayerIndex, "gunstore") then
-		if gunToBuy ~= nil then
-			if WEAPONS[gunToBuy] ~= nil then
-				if WEAPONS[gunToBuy]:getPrice() <= tonumber(ActivePlayers[PlayerIndex]:getBucks()) then
-					local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
-					if updatedWeapons[gunToBuy] == nil then
-						updatedWeapons[gunToBuy] = gunToBuy
-						ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
-						rprint(PlayerIndex, "You now own this weapon for loadouts.")
-					end
-					ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONS[gunToBuy]:getPrice())
-					giveGun(gunToBuy, PlayerIndex)
-					rprint(PlayerIndex, "Purchase of "..gunToBuy.." for "..niceMoneyDisplay(WEAPONS[gunToBuy]:getPrice()).." was successful.")
-				else
-					rprint(PlayerIndex, "You do not have enough bucks to buy this gun!")
-				end
-			else
-				rprint(PlayerIndex, "An invalid gun was specified!")
-			end
-		else
-			rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!")
-		end
-	else
-		rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons")
+	if not playerIsInArea(PlayerIndex, "gunstore") then rprint(PlayerIndex, "You need to be at a gunstore in order to buy weapons"); return; end
+
+	if gunToBuy == nil then rprint(PlayerIndex, "In order to buy something, you need to specify what you want to buy!"); return; end
+
+	if WEAPONS[gunToBuy] == nil then rprint(PlayerIndex, "An invalid gun was specified!"); return; end
+
+	if WEAPONS[gunToBuy]:getPrice() > tonumber(ActivePlayers[PlayerIndex]:getBucks()) then rprint(PlayerIndex, "You do not have enough money to buy this gun!"); return; end
+
+	local updatedWeapons = ActivePlayersOwnedWeapons[PlayerIndex]
+
+	if updatedWeapons[gunToBuy] == nil then
+		updatedWeapons[gunToBuy] = gunToBuy
+		ActivePlayersOwnedWeapons[PlayerIndex] = updatedWeapons
+		rprint(PlayerIndex, "You now own this weapon for loadouts.")
 	end
+
+	ActivePlayers[PlayerIndex].deductBucks(ActivePlayers[PlayerIndex], WEAPONS[gunToBuy]:getPrice())
+	giveGun(gunToBuy, PlayerIndex)
+	rprint(PlayerIndex, "Purchase of "..WEAPONS[gunToBuy]:getLabel().." for "..niceMoneyDisplay(WEAPONS[gunToBuy]:getPrice()).." was successful.")
+			
 end
 
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
