@@ -2,10 +2,10 @@
 -- import shared.config end
 -- END_IMPORT
 
-Inventory = {
+Player = {
 	name = "", --string value representing players name
 	hash = "", --string value representing players hash
-	bucks = 5000, --int value representing players money
+	bucks = 0, --int value representing players money
 	profession = "civilian", --string value representing player's profession
 	karma = 1.0, --int value representing player's karma value
     apartment = 0, --bool value (0 or 1) representing if a player has an apartment
@@ -14,35 +14,41 @@ Inventory = {
     fugitiveStatus = 0, --bool value (0 or 1) representing if a player is made or not
     loadoutPrimary = "empty", --string value representing primary weapon
     loadoutSecondary = "empty", --string value representing secondary weapon
-    jailStatus = 0, --bool value (0 or 1) value representing if a player is in jail or not
+    jailStatus = 0, --bool value (0 or 1) value representing if a player is in jail or not,
+	ownedVehicles=nil,
+	ownedWeapons=nil,
+	inventory=nil,
+	hasActiveVehicle=false,
+	inVehicle=false,
+	currentLocation=nil,
 }
 --Class methods
 --name getters + setters
-function Inventory:setName(strname)
+function Player:setName(strname)
 	self.name = strname
 end
-function Inventory:getName()
+function Player:getName()
 	return self.name
 end
 --hash getters + setters
-function Inventory:setHash(strhash)
+function Player:setHash(strhash)
 	self.hash = strhash
 end
-function Inventory:getHash()
+function Player:getHash()
 	return self.hash
 end
 --bucks setters + getters
-function Inventory:setBucks(bucks)
+function Player:setBucks(bucks)
 	if tonumber(bucks) > MAX_MONEY then
 		self.bucks = MAX_MONEY
 	else
 		self.bucks = bucks
 	end
 end
-function Inventory:getBucks(bucks)
+function Player:getBucks(bucks)
 	return self.bucks
 end
-function Inventory:payBucks(bucks) --adds ONTO the amount of bucks a player has
+function Player:payBucks(bucks) --adds ONTO the amount of bucks a player has
 	local tempBalance = self.bucks + bucks
 	if tempBalance > MAX_MONEY then
 		self.bucks = MAX_MONEY
@@ -50,7 +56,7 @@ function Inventory:payBucks(bucks) --adds ONTO the amount of bucks a player has
 		self.bucks = tempBalance
 	end
 end
-function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. this value cannot dip below 0.
+function Player:deductBucks(bucks) --deducts cash out of player's Player. this value cannot dip below 0.
 	local tempBalance = self.bucks - bucks
 	if tempBalance < 0 then --if the amount of cash deducted would be below zero
 		self.bucks = 0 --then set their amount of cash to 0
@@ -60,16 +66,16 @@ function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. 
 end
 --profession setters and getters
 
-function Inventory:setProfession(professionToBe)
+function Player:setProfession(professionToBe)
 	self.profession = professionToBe 
 end
 
 
-function Inventory:getProfession()
+function Player:getProfession()
     return self.profession
 end
 --karma setters and getters
-function Inventory:setKarma(newKarmaValue)
+function Player:setKarma(newKarmaValue)
 	newKarmaValue = tonumber(newKarmaValue)
 	if newKarmaValue > MAX_KARMA then
 		self.karma = MAX_KARMA
@@ -77,10 +83,10 @@ function Inventory:setKarma(newKarmaValue)
 		self.karma = newKarmaValue
 	end
 end
-function Inventory:getKarma()
+function Player:getKarma()
 	return self.karma
 end
-function Inventory:incrementKarma()
+function Player:incrementKarma()
 	local incrementedKarmaValue = self.karma + 1
 	if incrementedKarmaValue > MAX_KARMA then
 		self.karma = MAX_KARMA
@@ -89,7 +95,7 @@ function Inventory:incrementKarma()
 	end
 end
 --cop getters and setters
-function Inventory:setCopPosition(newCopPositionNumber)
+function Player:setCopPosition(newCopPositionNumber)
 	local newCopPosition = COPPOSITIONS[newCopPositionNumber]
 	if newCopPosition ~= nil then
 		self.copPosition = newCopPositionNumber
@@ -99,60 +105,78 @@ function Inventory:setCopPosition(newCopPositionNumber)
 		return false
 	end
 end
-function Inventory:getCopPosition()
+function Player:getCopPosition()
 	return self.copPosition
 end
 --authority setters and getters
-function Inventory:setCopAuthority(newAuthorityValue)
+function Player:setCopAuthority(newAuthorityValue)
 	self.copAuthority = newAuthorityValue
 end
-function Inventory:getCopAuthority()
+function Player:getCopAuthority()
 	return self.copAuthority
 end
 --apartment status getters + setters
-function Inventory:setApartment(apartmentStatus)
+function Player:setApartment(apartmentStatus)
 	self.apartment = apartmentStatus
 end
-function Inventory:getApartment()
+function Player:getApartment()
 	return self.apartment
 end
-function Inventory:getCopRank()
+function Player:getCopRank()
 	return self.copRank
 end
 --fugitive status setters + getters
-function Inventory:setFugitiveStatus(fugitiveStatusToBe)
+function Player:setFugitiveStatus(fugitiveStatusToBe)
     self.fugitiveStatus = fugitiveStatusToBe
 end
-function Inventory:getFugitiveStatus()
+function Player:getFugitiveStatus()
     return self.fugitiveStatus
 end
 --set loadouts
-function Inventory:setLoadoutPrimary(primaryWeapon) 
+function Player:setLoadoutPrimary(primaryWeapon) 
     self.loadoutPrimary = primaryWeapon
 end
-function Inventory:setLoadoutSecondary(secondaryWeapon) --used for io
+function Player:setLoadoutSecondary(secondaryWeapon) --used for io
 	self.loadoutSecondary = secondaryWeapon
 end
-function Inventory:setLoadout(primaryWeapon, secondaryWeapon)
+function Player:setLoadout(primaryWeapon, secondaryWeapon)
 	self.loadoutPrimary = primaryWeapon
     self.loadoutSecondary = secondaryWeapon
 end
 --get loadouts
-function Inventory:getPrimaryWeapon()
+function Player:getPrimaryWeapon()
     return self.loadoutPrimary
 end
-function Inventory:getSecondaryWeapon()
+function Player:getSecondaryWeapon()
     return self.loadoutSecondary
 end
-function Inventory:setJailStatus(jailStatusToBe)
+function Player:setJailStatus(jailStatusToBe)
 	self.jailStatus = jailStatusToBe
 end
-function Inventory:getJailStatus()
+function Player:getJailStatus()
 	return self.jailStatus
 end
 
-function Inventory:new(o)
-	o = o or {} --if o is not specified, it will make the object a table, therefore not able to access Inventory's functions.
+function Player:setOwnedVehicles(ownedVehicles)
+	self.ownedVehicles = ownedVehicles
+	return self
+end
+
+function Player:getOwnedVehicles()
+	return self.ownedVehicles
+end
+
+function Player:setOwnedWeapons(ownedWeapons)
+	self.ownedWeapons = ownedWeapons
+	return self
+end
+
+function Player:getOwnedWeapons()
+	return self.ownedWeapons
+end
+
+function Player:new(o)
+	o = o or {} 
 	setmetatable(o,self)
 	self.__index = self
 	return o

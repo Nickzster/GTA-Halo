@@ -1,6 +1,6 @@
 --BEGIN_IMPORT
 -- import shared.globals end
--- import core.objects.Inventory end
+-- import core.objects.Player end
 -- import helpers.moneyDisplay end
 -- import core.objects.LocalDB end
 -- import helpers.serverUtils end
@@ -35,7 +35,6 @@ function OnScriptLoad()
 	register_callback(cb['EVENT_TICK'], "OnTick")
 	register_callback(cb['EVENT_OBJECT_SPAWN'],"OnObjectSpawn")
 	register_callback(cb['EVENT_SPAWN'], "OnSpawn")
-	--initalizeInventory()
 end
 
 
@@ -118,9 +117,9 @@ function OnPlayerLeave(PlayerIndex)
 	PlayerIsInAVehicle[PlayerIndex] = 0
 	PlayerSpawnedVehicles[PlayerIndex] = 0
 	writePlayerData(PlayerIndex)
-	local emptyInventory = Inventory:new(Inventory)
+	local emptyPlayer = Player:new()
 	local emptyVehicleTable = {}
-	ActivePlayers[PlayerIndex] = emptyInventory
+	ActivePlayers[PlayerIndex] = emptyPlayer
 	ActivePlayersOwnedCars[PlayerIndex] = emptyVehicleTable
 end
 

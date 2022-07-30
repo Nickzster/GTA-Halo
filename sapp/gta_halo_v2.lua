@@ -392,8 +392,20 @@ PlayerAreas = {} --List of all of the player's that are in key areas (stores, et
 timeToReward = 30 * 60 * 30
 waitingToReward = 0
 needToResetGame = false
---end of dynamic tables
---end of Startup stuff
+
+-- EventLoopTable = {
+--     events={}
+--     iterateEventLoopTable=function(self)
+--         for i, event in ipairs(self.events) do
+--             if event:execute() then
+--                 table.remove(self.events, i)
+--             end
+--         end
+--     end,
+--     registerEvent=function(self, event )
+--         table.insert(self.events, event)
+--     end,
+-- }
 
 function playerIsAdmin(playerIndex)
     local adminLevel = tonumber(get_var(playerIndex, "$lvl"))
@@ -425,10 +437,10 @@ end
 
 
 
-Inventory = {
+Player = {
 	name = "", --string value representing players name
 	hash = "", --string value representing players hash
-	bucks = 5000, --int value representing players money
+	bucks = 0, --int value representing players money
 	profession = "civilian", --string value representing player's profession
 	karma = 1.0, --int value representing player's karma value
     apartment = 0, --bool value (0 or 1) representing if a player has an apartment
@@ -437,35 +449,41 @@ Inventory = {
     fugitiveStatus = 0, --bool value (0 or 1) representing if a player is made or not
     loadoutPrimary = "empty", --string value representing primary weapon
     loadoutSecondary = "empty", --string value representing secondary weapon
-    jailStatus = 0, --bool value (0 or 1) value representing if a player is in jail or not
+    jailStatus = 0, --bool value (0 or 1) value representing if a player is in jail or not,
+	ownedVehicles=nil,
+	ownedWeapons=nil,
+	inventory=nil,
+	hasActiveVehicle=false,
+	inVehicle=false,
+	currentLocation=nil,
 }
 --Class methods
 --name getters + setters
-function Inventory:setName(strname)
+function Player:setName(strname)
 	self.name = strname
 end
-function Inventory:getName()
+function Player:getName()
 	return self.name
 end
 --hash getters + setters
-function Inventory:setHash(strhash)
+function Player:setHash(strhash)
 	self.hash = strhash
 end
-function Inventory:getHash()
+function Player:getHash()
 	return self.hash
 end
 --bucks setters + getters
-function Inventory:setBucks(bucks)
+function Player:setBucks(bucks)
 	if tonumber(bucks) > MAX_MONEY then
 		self.bucks = MAX_MONEY
 	else
 		self.bucks = bucks
 	end
 end
-function Inventory:getBucks(bucks)
+function Player:getBucks(bucks)
 	return self.bucks
 end
-function Inventory:payBucks(bucks) --adds ONTO the amount of bucks a player has
+function Player:payBucks(bucks) --adds ONTO the amount of bucks a player has
 	local tempBalance = self.bucks + bucks
 	if tempBalance > MAX_MONEY then
 		self.bucks = MAX_MONEY
@@ -473,7 +491,7 @@ function Inventory:payBucks(bucks) --adds ONTO the amount of bucks a player has
 		self.bucks = tempBalance
 	end
 end
-function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. this value cannot dip below 0.
+function Player:deductBucks(bucks) --deducts cash out of player's Player. this value cannot dip below 0.
 	local tempBalance = self.bucks - bucks
 	if tempBalance < 0 then --if the amount of cash deducted would be below zero
 		self.bucks = 0 --then set their amount of cash to 0
@@ -483,16 +501,16 @@ function Inventory:deductBucks(bucks) --deducts cash out of player's inventory. 
 end
 --profession setters and getters
 
-function Inventory:setProfession(professionToBe)
+function Player:setProfession(professionToBe)
 	self.profession = professionToBe 
 end
 
 
-function Inventory:getProfession()
+function Player:getProfession()
     return self.profession
 end
 --karma setters and getters
-function Inventory:setKarma(newKarmaValue)
+function Player:setKarma(newKarmaValue)
 	newKarmaValue = tonumber(newKarmaValue)
 	if newKarmaValue > MAX_KARMA then
 		self.karma = MAX_KARMA
@@ -500,10 +518,10 @@ function Inventory:setKarma(newKarmaValue)
 		self.karma = newKarmaValue
 	end
 end
-function Inventory:getKarma()
+function Player:getKarma()
 	return self.karma
 end
-function Inventory:incrementKarma()
+function Player:incrementKarma()
 	local incrementedKarmaValue = self.karma + 1
 	if incrementedKarmaValue > MAX_KARMA then
 		self.karma = MAX_KARMA
@@ -512,7 +530,7 @@ function Inventory:incrementKarma()
 	end
 end
 --cop getters and setters
-function Inventory:setCopPosition(newCopPositionNumber)
+function Player:setCopPosition(newCopPositionNumber)
 	local newCopPosition = COPPOSITIONS[newCopPositionNumber]
 	if newCopPosition ~= nil then
 		self.copPosition = newCopPositionNumber
@@ -522,60 +540,78 @@ function Inventory:setCopPosition(newCopPositionNumber)
 		return false
 	end
 end
-function Inventory:getCopPosition()
+function Player:getCopPosition()
 	return self.copPosition
 end
 --authority setters and getters
-function Inventory:setCopAuthority(newAuthorityValue)
+function Player:setCopAuthority(newAuthorityValue)
 	self.copAuthority = newAuthorityValue
 end
-function Inventory:getCopAuthority()
+function Player:getCopAuthority()
 	return self.copAuthority
 end
 --apartment status getters + setters
-function Inventory:setApartment(apartmentStatus)
+function Player:setApartment(apartmentStatus)
 	self.apartment = apartmentStatus
 end
-function Inventory:getApartment()
+function Player:getApartment()
 	return self.apartment
 end
-function Inventory:getCopRank()
+function Player:getCopRank()
 	return self.copRank
 end
 --fugitive status setters + getters
-function Inventory:setFugitiveStatus(fugitiveStatusToBe)
+function Player:setFugitiveStatus(fugitiveStatusToBe)
     self.fugitiveStatus = fugitiveStatusToBe
 end
-function Inventory:getFugitiveStatus()
+function Player:getFugitiveStatus()
     return self.fugitiveStatus
 end
 --set loadouts
-function Inventory:setLoadoutPrimary(primaryWeapon) 
+function Player:setLoadoutPrimary(primaryWeapon) 
     self.loadoutPrimary = primaryWeapon
 end
-function Inventory:setLoadoutSecondary(secondaryWeapon) --used for io
+function Player:setLoadoutSecondary(secondaryWeapon) --used for io
 	self.loadoutSecondary = secondaryWeapon
 end
-function Inventory:setLoadout(primaryWeapon, secondaryWeapon)
+function Player:setLoadout(primaryWeapon, secondaryWeapon)
 	self.loadoutPrimary = primaryWeapon
     self.loadoutSecondary = secondaryWeapon
 end
 --get loadouts
-function Inventory:getPrimaryWeapon()
+function Player:getPrimaryWeapon()
     return self.loadoutPrimary
 end
-function Inventory:getSecondaryWeapon()
+function Player:getSecondaryWeapon()
     return self.loadoutSecondary
 end
-function Inventory:setJailStatus(jailStatusToBe)
+function Player:setJailStatus(jailStatusToBe)
 	self.jailStatus = jailStatusToBe
 end
-function Inventory:getJailStatus()
+function Player:getJailStatus()
 	return self.jailStatus
 end
 
-function Inventory:new(o)
-	o = o or {} --if o is not specified, it will make the object a table, therefore not able to access Inventory's functions.
+function Player:setOwnedVehicles(ownedVehicles)
+	self.ownedVehicles = ownedVehicles
+	return self
+end
+
+function Player:getOwnedVehicles()
+	return self.ownedVehicles
+end
+
+function Player:setOwnedWeapons(ownedWeapons)
+	self.ownedWeapons = ownedWeapons
+	return self
+end
+
+function Player:getOwnedWeapons()
+	return self.ownedWeapons
+end
+
+function Player:new(o)
+	o = o or {} 
 	setmetatable(o,self)
 	self.__index = self
 	return o
@@ -713,7 +749,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	local fileHash = get_var(PlayerIndex, "$hash")
 	local filename = "player_data_files/"..fileHash
 	local inputFile = io.open(filename, "r") 
-	local tempInventory = Inventory.new(Inventory)
+	local playerInstance = Player:new()
 	local tempVehicleTable = {}
 	local tempWeaponTable = {}
 	local playerName = get_var(PlayerIndex, "$name")
@@ -725,30 +761,30 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 			local valueToCompare = inputFile:read("*l")
 			print("\nChecking "..valueToCompare.." to see if it is valid.")
 			if valueToCompare == "$PLAYER_NAME" then
-				tempInventory:setName(inputFile:read("*l"))
+				playerInstance:setName(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_HASH" then
-				tempInventory:setHash(inputFile:read("*l"))
+				playerInstance:setHash(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_BUCKS" then
-				tempInventory:setBucks(inputFile:read("*l"))
+				playerInstance:setBucks(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_PROFESSION" then
 				local professionKey = inputFile:read("*l") or "civilian"
-				tempInventory:setProfession(PROFESSIONS[professionKey])
+				playerInstance:setProfession(PROFESSIONS[professionKey])
 			elseif valueToCompare == "$PLAYER_KARMA" then
-				tempInventory:setKarma(inputFile:read("*l"))
+				playerInstance:setKarma(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_APARTMENTSTATUS" then
-				tempInventory:setApartment(inputFile:read("*l"))
+				playerInstance:setApartment(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_COPPOSITION" then
-				tempInventory:setCopPosition(inputFile:read("*l"))
+				playerInstance:setCopPosition(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_AUTHORITY" then
-				tempInventory:setCopAuthority(inputFile:read("*l"))
+				playerInstance:setCopAuthority(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_FUGITIVESTATUS" then 
-				tempInventory:setFugitiveStatus(inputFile:read("*l"))
+				playerInstance:setFugitiveStatus(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_LOADOUTPRIMARY" then
-				tempInventory:setLoadoutPrimary(inputFile:read("*l"))
+				playerInstance:setLoadoutPrimary(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_LOADOUTSECONDARY" then
-				tempInventory:setLoadoutSecondary(inputFile:read("*l"))
+				playerInstance:setLoadoutSecondary(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_JAILSTATUS" then
-				tempInventory:setJailStatus(inputFile:read("*l"))
+				playerInstance:setJailStatus(inputFile:read("*l"))
 			elseif valueToCompare == "@PLAYER_OWNEDVEHICLES" then
 				local readVehicles = true
 				while readVehicles do
@@ -781,21 +817,21 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 		inputFile:close()
 	else --otherwise, set default values.
 		say(PlayerIndex, "Welcome to GTA Halo, "..playerName.."!")
-		tempInventory:setName(playerName)
-		tempInventory:setHash(fileHash)
-		tempInventory:setBucks(5000)
-		tempInventory:setApartment(0)
-		tempInventory:setKarma(1)
-		tempInventory:setCopPosition("")
-		tempInventory:setCopAuthority(0)
-		tempInventory:setProfession(defaultProfession)
-		tempInventory:setFugitiveStatus(0)
-		tempInventory:setLoadout("empty","empty")
-		tempInventory:setJailStatus(0)
+		playerInstance:setName(playerName)
+		playerInstance:setHash(fileHash)
+		playerInstance:setBucks(5000)
+		playerInstance:setApartment(0)
+		playerInstance:setKarma(1)
+		playerInstance:setCopPosition("")
+		playerInstance:setCopAuthority(0)
+		playerInstance:setProfession(defaultProfession)
+		playerInstance:setFugitiveStatus(0)
+		playerInstance:setLoadout("empty","empty")
+		playerInstance:setJailStatus(0)
 		tempVehicleTable = {["cwarthog"] = "cwarthog"}
 		tempWeaponTable = {["g17"] = "g17"}
 	end
-	ActivePlayers[PlayerIndex] = tempInventory
+	ActivePlayers[PlayerIndex] = playerInstance
 	ActivePlayersOwnedCars[PlayerIndex] = tempVehicleTable
 	ActivePlayersOwnedWeapons[PlayerIndex] = tempWeaponTable
 	if ActivePlayers[PlayerIndex]:getProfession():getTitle() == "Officer" then
@@ -1434,7 +1470,6 @@ function OnScriptLoad()
 	register_callback(cb['EVENT_TICK'], "OnTick")
 	register_callback(cb['EVENT_OBJECT_SPAWN'],"OnObjectSpawn")
 	register_callback(cb['EVENT_SPAWN'], "OnSpawn")
-	--initalizeInventory()
 end
 
 
@@ -1517,9 +1552,9 @@ function OnPlayerLeave(PlayerIndex)
 	PlayerIsInAVehicle[PlayerIndex] = 0
 	PlayerSpawnedVehicles[PlayerIndex] = 0
 	writePlayerData(PlayerIndex)
-	local emptyInventory = Inventory:new(Inventory)
+	local emptyPlayer = Player:new()
 	local emptyVehicleTable = {}
-	ActivePlayers[PlayerIndex] = emptyInventory
+	ActivePlayers[PlayerIndex] = emptyPlayer
 	ActivePlayersOwnedCars[PlayerIndex] = emptyVehicleTable
 end
 

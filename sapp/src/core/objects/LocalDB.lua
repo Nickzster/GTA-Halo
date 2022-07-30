@@ -1,5 +1,5 @@
 -- BEGIN_IMPORT
--- import core.objects.Inventory end
+-- import core.objects.Player end
 -- END_IMPORT
 
 function writePlayerData(PlayerIndex) --ActivePlayers -> $hash
@@ -86,7 +86,7 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 	local fileHash = get_var(PlayerIndex, "$hash")
 	local filename = "player_data_files/"..fileHash
 	local inputFile = io.open(filename, "r") 
-	local tempInventory = Inventory.new(Inventory)
+	local playerInstance = Player:new()
 	local tempVehicleTable = {}
 	local tempWeaponTable = {}
 	local playerName = get_var(PlayerIndex, "$name")
@@ -98,30 +98,30 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 			local valueToCompare = inputFile:read("*l")
 			print("\nChecking "..valueToCompare.." to see if it is valid.")
 			if valueToCompare == "$PLAYER_NAME" then
-				tempInventory:setName(inputFile:read("*l"))
+				playerInstance:setName(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_HASH" then
-				tempInventory:setHash(inputFile:read("*l"))
+				playerInstance:setHash(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_BUCKS" then
-				tempInventory:setBucks(inputFile:read("*l"))
+				playerInstance:setBucks(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_PROFESSION" then
 				local professionKey = inputFile:read("*l") or "civilian"
-				tempInventory:setProfession(PROFESSIONS[professionKey])
+				playerInstance:setProfession(PROFESSIONS[professionKey])
 			elseif valueToCompare == "$PLAYER_KARMA" then
-				tempInventory:setKarma(inputFile:read("*l"))
+				playerInstance:setKarma(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_APARTMENTSTATUS" then
-				tempInventory:setApartment(inputFile:read("*l"))
+				playerInstance:setApartment(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_COPPOSITION" then
-				tempInventory:setCopPosition(inputFile:read("*l"))
+				playerInstance:setCopPosition(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_AUTHORITY" then
-				tempInventory:setCopAuthority(inputFile:read("*l"))
+				playerInstance:setCopAuthority(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_FUGITIVESTATUS" then 
-				tempInventory:setFugitiveStatus(inputFile:read("*l"))
+				playerInstance:setFugitiveStatus(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_LOADOUTPRIMARY" then
-				tempInventory:setLoadoutPrimary(inputFile:read("*l"))
+				playerInstance:setLoadoutPrimary(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_LOADOUTSECONDARY" then
-				tempInventory:setLoadoutSecondary(inputFile:read("*l"))
+				playerInstance:setLoadoutSecondary(inputFile:read("*l"))
 			elseif valueToCompare == "$PLAYER_JAILSTATUS" then
-				tempInventory:setJailStatus(inputFile:read("*l"))
+				playerInstance:setJailStatus(inputFile:read("*l"))
 			elseif valueToCompare == "@PLAYER_OWNEDVEHICLES" then
 				local readVehicles = true
 				while readVehicles do
@@ -154,21 +154,21 @@ function getPlayerData(PlayerIndex) --$hash -> ActivePlayers
 		inputFile:close()
 	else --otherwise, set default values.
 		say(PlayerIndex, "Welcome to GTA Halo, "..playerName.."!")
-		tempInventory:setName(playerName)
-		tempInventory:setHash(fileHash)
-		tempInventory:setBucks(5000)
-		tempInventory:setApartment(0)
-		tempInventory:setKarma(1)
-		tempInventory:setCopPosition("")
-		tempInventory:setCopAuthority(0)
-		tempInventory:setProfession(defaultProfession)
-		tempInventory:setFugitiveStatus(0)
-		tempInventory:setLoadout("empty","empty")
-		tempInventory:setJailStatus(0)
+		playerInstance:setName(playerName)
+		playerInstance:setHash(fileHash)
+		playerInstance:setBucks(5000)
+		playerInstance:setApartment(0)
+		playerInstance:setKarma(1)
+		playerInstance:setCopPosition("")
+		playerInstance:setCopAuthority(0)
+		playerInstance:setProfession(defaultProfession)
+		playerInstance:setFugitiveStatus(0)
+		playerInstance:setLoadout("empty","empty")
+		playerInstance:setJailStatus(0)
 		tempVehicleTable = {["cwarthog"] = "cwarthog"}
 		tempWeaponTable = {["g17"] = "g17"}
 	end
-	ActivePlayers[PlayerIndex] = tempInventory
+	ActivePlayers[PlayerIndex] = playerInstance
 	ActivePlayersOwnedCars[PlayerIndex] = tempVehicleTable
 	ActivePlayersOwnedWeapons[PlayerIndex] = tempWeaponTable
 	if ActivePlayers[PlayerIndex]:getProfession():getTitle() == "Officer" then
